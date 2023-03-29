@@ -64,8 +64,7 @@
 -ChatGPT4
 
 ### What it does
-Currently it spawns 114 shapes that will be later used.
-They will be later used to have fun with Wave Function Collapse in 3D.
+Currently it spawns 114 shapes that will be later used to have fun with Wave Function Collapse in 3D.
 
 ## Installation
 Install the dependencies of this project using `npm install` or `npm ci`
