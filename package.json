@@ -1,0 +1,11 @@
+{
+    "name": "effervescent-pipes",
+    "author": "momimomo",
+    "version": "1.0.0",
+    "private": true,
+    "license": "MIT",
+    "dependencies": {
+        "three": "^0.150.1",
+        "wavefunctioncollapse": "2.0.0"
+    }
+}
