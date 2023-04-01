@@ -4,6 +4,7 @@
     "version": "1.0.0",
     "private": true,
     "browserslist": "> 0.5%, last 2 versions, not dead",
+    "homepage": "https://momimomo.github.io/Effervescent-Pipes/",
     "license": "MIT",
     "dependencies": {
         "gh-pages": "^5.0.0",
@@ -11,7 +12,7 @@
         "wavefunctioncollapse": "^2.0.0"
     },
     "scripts": {
-        "build": "parcel build index.html --dist-dir docs --public-url ./",
+        "build": "parcel build index.html --dist-dir docs --public-url https://momimomo.github.io/Effervescent-Pipes/",
         "deploy": "gh-pages -d dist"
     }
 }
