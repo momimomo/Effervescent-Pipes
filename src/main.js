@@ -5,7 +5,13 @@ import {
   randomHexColor,
   getRandomValueFromArray,
   rotate,
-  getAllRotations 
+  getAllRotations,
+  createGrid,
+  createAll,
+  getAllShapesVariants,
+  reduceAllowedNeighbors,
+  findLowestEntropyCell,
+
 } from './utils'
 
 
@@ -25,9 +31,9 @@ const cellSize = 0.33333333;
 const geometry = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
 
 function createThreeJSShape(shape) {
-  const color = new THREE.Color(randomHexColor(["04", "01", "3B", "0F", "59", "0F"]));
+  const color = new THREE.Color(randomHexColor(["16", "0F", "28", "0F", "25", "0F"]));
 
-  const material = new THREE.MeshBasicMaterial({ color: color, wireframe: true });
+  const material = new THREE.MeshToonMaterial({ color });
 
   const countOfOnes = shape.split("").filter(i => i === "1").length;
     // count of needed cubes is equal to central one + all 1s in shape
@@ -60,149 +66,6 @@ function createThreeJSShape(shape) {
 }
 
 
-const getAllShapesVariants = (shapes) => {
-  let allShapesVariants = []
-  for (let shape of shapes) {
-    const shapeVariants = getAllRotations(shape);
-    allShapesVariants = [...allShapesVariants, ...shapeVariants]
-  }
-  return allShapesVariants;
-}
-
-function getCompatibleNeighbors(shape, direction, allShapes) {
-  const compatibleNeighbors = [];
-
-  allShapes.forEach((neighborShape) => {
-    if (shape === neighborShape) return;
-
-    let matchingFace;
-    switch (direction) {
-      case '-X':
-        matchingFace = 1;
-        break;
-      case '+X':
-        matchingFace = 0;
-        break;
-      case '-Y':
-        matchingFace = 3;
-        break;
-      case '+Y':
-        matchingFace = 2;
-        break;
-      case '-Z':
-        matchingFace = 5;
-        break;
-      case '+Z':
-        matchingFace = 4;
-        break;
-      default:
-        throw new Error('Invalid direction');
-    }
-
-    if (shape[matchingFace] === neighborShape[matchingFace]) {
-      compatibleNeighbors.push(neighborShape);
-    }
-  });
-
-  return compatibleNeighbors;
-}
-
-function createGrid(n, allowedShapes) {
-  const array = new Array(n);
-
-  for (let x = 0; x < n; x++) {
-    array[x] = new Array(n);
-
-    for (let y = 0; y < n; y++) {
-      array[x][y] = new Array(n);
-
-      for (let z = 0; z < n; z++) {
-        array[x][y][z] = { allowed: allowedShapes };
-      }
-    }
-  }
-
-  return array;
-}
-
-// only if a cell has a shape already
-const reduceAllowedNeighbors = (position, grid) => {
-  const [x, y, z] = position;
-  const currentCell = grid[x][y][z];
-  const shape = currentCell.shape;
-  let neighborCell = {};
-  let newAllowed = {}
-  for (let i = 0; i < 6; i++) {
-    switch (i) {
-      case 0:
-        neighborCell = grid[x - 1] && grid[x - 1][y] && grid[x - 1][y][z];
-        if (neighborCell) {
-          newAllowed = neighborCell.allowed.filter(i => shape[0] === i[1]);
-          grid[x - 1][y][z]['allowed'] = newAllowed;
-        }
-        break;
-      case 1:
-        neighborCell = grid[x + 1] && grid[x + 1][y] && grid[x + 1][y][z];
-        if (neighborCell) {
-        newAllowed = neighborCell.allowed.filter(i => shape[1] === i[0]);
-        grid[x + 1][y][z]['allowed'] = newAllowed;
-        }
-        break;
-      case 2:
-        neighborCell = grid[x] && grid[x][y - 1] && grid[x][y - 1][z];
-        if (neighborCell) {
-        newAllowed = neighborCell.allowed.filter(i => shape[2] === i[3]);
-        grid[x][y - 1][z]['allowed'] = newAllowed;
-        }
-        break;
-      case 3:
-        neighborCell = grid[x] && grid[x][y + 1] && grid[x][y + 1][z];
-        if (neighborCell) {
-        newAllowed = neighborCell.allowed.filter(i => shape[3] === i[2]);
-        grid[x][y + 1][z]['allowed'] = newAllowed;
-        }
-        break;
-      case 4:
-        neighborCell = grid[x] && grid[x][y] && grid[x][y][z - 1];
-        if (neighborCell) {
-        newAllowed = neighborCell.allowed.filter(i => shape[4] === i[5]);
-        grid[x][y][z - 1]['allowed'] = newAllowed;
-        }
-        break;
-      case 5:
-        neighborCell = grid[x] && grid[x][y] && grid[x][y][z + 1];
-        if (neighborCell) {
-        newAllowed = neighborCell.allowed.filter(i => shape[5] === i[4]);
-        grid[x][y][z + 1]['allowed'] = newAllowed;
-        }
-        break;
-    }
-  }
-}
-
-const findLowestEntropyCell = (grid) => {
-  let lowestEntropy = 31; // 1 larger than number of all possible unique shapes (31 unique rotations of initial 7)
-  let lowestEntropyCell;
-  for (let x = 0; x < grid.length; x++) {
-    for (let y = 0; y < grid.length; y++) {
-      for (let z = 0; z < grid.length; z++) {
-        const target = grid[x][y][z];
-        const isCollapsed = target.shape;
-        if (!isCollapsed) {
-          const numberOfShapes = target.allowed.length
-          if (numberOfShapes < lowestEntropy) {
-            lowestEntropy = numberOfShapes;
-            lowestEntropyCell = [x,y,z];
-          } 
-        }
-      }
-    }
-  }
-  if (!lowestEntropyCell) {
-    return false
-  }
-  return lowestEntropyCell;
-}
 
 const allShapesVariants = getAllShapesVariants(unique3DShapes);
 
@@ -241,6 +104,10 @@ function createScene() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
+  const directionalLight = new THREE.DirectionalLight( 0xffffff, 1.2 );
+  scene.add( directionalLight );
+
+
   camera.position.x = 10;
   camera.position.y = 5;
   camera.position.z = 13;
@@ -260,7 +127,7 @@ function createScene() {
             scene.add(obj);
             obj.position.set(x, y, z);
           }
-          await sleep(50);
+          await sleep(5);
         }
       }
     }
