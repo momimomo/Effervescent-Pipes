@@ -29,29 +29,33 @@ function createThreeJSShape(shape) {
 
   const material = new THREE.MeshBasicMaterial({ color: color, wireframe: true });
 
-  const createCube = (x, y, z) => {
-    const cube = new THREE.InstancedMesh(geometry, material, 1);
-    cube.setMatrixAt(0, new THREE.Matrix4().setPosition(x, y, z));
-    return cube;
-  };
+  const countOfOnes = shape.split("").filter(i => i === "1").length;
+    // count of needed cubes is equal to central one + all 1s in shape
+    const cubes = new THREE.InstancedMesh(geometry, material, 1 + countOfOnes);
 
-  const shapeObject = new THREE.Object3D();
+    const shapeObject = new THREE.Object3D();
+    
+    if (shape === "000000") {
+      return shapeObject;
+    }
 
-  if (shape === "000000") {
-    return shapeObject;
-  }
-
-  shapeObject.add(createCube(0, 0, 0));
-
+    let matrixIdx = 0
+  
+  // initial one
+  cubes.setMatrixAt(matrixIdx, new THREE.Matrix4().setPosition(0, 0, 0));
+  
   for (let i = 0; i < 6; i++) {
     if (shape[i] === "1") {
       const x = (i === 0 || i === 1) ? cellSize * (i * 2 - 1) : 0;
       const y = (i === 2 || i === 3) ? cellSize * (i * 2 - 5) : 0;
       const z = (i === 4 || i === 5) ? cellSize * (i * 2 - 9) : 0;
-
-      shapeObject.add(createCube(x, y, z));
+      matrixIdx ++
+      
+      cubes.setMatrixAt(matrixIdx, new THREE.Matrix4().setPosition(x, y, z));
     }
   }
+  cubes.instanceMatrix.needsUpdate = true
+  shapeObject.add(cubes);
   return shapeObject;
 }
 
