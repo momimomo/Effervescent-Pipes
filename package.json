@@ -12,7 +12,8 @@
         "wavefunctioncollapse": "^2.0.0"
     },
     "scripts": {
-        "build": "parcel build index.html --dist-dir docs --public-url https://momimomo.github.io/Effervescent-Pipes/",
-        "deploy": "gh-pages -d docs"
+        "build": "parcel build src/index.html --public-url https://momimomo.github.io/Effervescent-Pipes/",
+        "dev": "parcel src/index.html",
+        "deploy": "gh-pages"
     }
 }
