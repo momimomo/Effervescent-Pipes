@@ -5,6 +5,10 @@
 
 -ChatGPT4
 
+
+## Demo
+https://momimomo.github.io/Effervescent-Pipes/
+
 ### What it does
 This is a minimalistic, working Wave Function Collapse implementation in 3D. 
 My plans for future is to optimize it as much as possible.
