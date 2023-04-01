@@ -3,6 +3,7 @@
     "author": "momimomo",
     "version": "1.0.0",
     "private": true,
+    "browserslist": "> 0.5%, last 2 versions, not dead",
     "license": "MIT",
     "dependencies": {
         "three": "^0.150.1",

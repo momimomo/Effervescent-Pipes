@@ -231,7 +231,7 @@ function createScene() {
   );
   const renderer = new THREE.WebGLRenderer();
 
-  controls = new OrbitControls(camera, renderer.domElement);
+  const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(5, 5, 5);
   controls.autoRotate = true
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -246,7 +246,6 @@ function createScene() {
   }
   
   // This should create every shape once, and reuse them using InstancedMesh or similar
-  // Currently at least the basic shapes are created form InstancedMeshes
   async function delayedLoop() {
     for (let x = 0; x < grid.length; x++) {
       for (let y = 0; y < grid.length; y++) {
