@@ -6,7 +6,12 @@
     "browserslist": "> 0.5%, last 2 versions, not dead",
     "license": "MIT",
     "dependencies": {
+        "gh-pages": "^5.0.0",
         "three": "^0.150.1",
         "wavefunctioncollapse": "^2.0.0"
+    },
+    "scripts": {
+        "build": "parcel build index.html --dist-dir docs --public-url ./",
+        "deploy": "gh-pages -d dist"
     }
 }
