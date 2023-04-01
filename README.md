@@ -1,5 +1,33 @@
 # Effervescent Pipes
 
+> I'm glad the updated solution provides the desired output! 
+> Yes, it's fascinating to see how many different combinations can be generated while still meeting the specified conditions.
+
+-ChatGPT4
+
+### What it does
+This is a minimalistic, working Wave Function Collapse implementation in 3D. 
+My plans for future is to optimize it as much as possible.
+
+## Installation
+1. Install the dependencies of this project using `npm install` or `npm ci`
+
+2. Install parcel globally by running `npm install parcel -g`
+
+## Running local dev
+Run with `parcel index.html`
+
+## Note
+Have fun exploring what this repo does!
+
+## License
+MIT
+
+## And this... Is... to go... even further beyond!
+
+### Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(...)!!!
+
+
 ```
     .,;,',;,...'''''''''''',.                                                                      
     .,;,;c:;;;;;;;;;;;;;;;;:::.                                                                    
@@ -54,29 +82,3 @@
                .,cc:;;;;;;;;;;;;,..                                                                
                  ..''''''''''...                                                                   
 ```
-
-## And this... Is... to go... even further beyond!
-
-### Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(...)!!!
-
-> I'm glad the updated solution provides the desired output! 
-> Yes, it's fascinating to see how many different combinations can be generated while still meeting the specified conditions.
-
--ChatGPT4
-
-### What it does
-Currently it spawns 114 shapes that will be later used to have fun with Wave Function Collapse in 3D.
-
-## Installation
-1. Install the dependencies of this project using `npm install` or `npm ci`
-
-2. Install parcel globally by running `npm install parcel -g`
-
-## Running local dev
-Run with `parcel index.html`
-
-## Note
-Have fun exploring what this repo does!
-
-## License
-MIT

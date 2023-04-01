@@ -6,6 +6,6 @@
     "license": "MIT",
     "dependencies": {
         "three": "^0.150.1",
-        "wavefunctioncollapse": "2.0.0"
+        "wavefunctioncollapse": "^2.0.0"
     }
 }
