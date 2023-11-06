@@ -13,6 +13,6 @@
     "scripts": {
         "build": "parcel build src/index.html --public-url https://momimomo.github.io/Effervescent-Pipes/",
         "dev": "parcel src/index.html",
-        "deploy": "gh-pages"
+        "deploy": "npx gh-pages --dist dist"
     }
 }
