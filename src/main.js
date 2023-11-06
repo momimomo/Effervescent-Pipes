@@ -8,11 +8,16 @@ let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHei
 let renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas') });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
-let ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+let ambientLight = new THREE.AmbientLight(0x33ee33, 0.5);
 scene.add(ambientLight);
 
+// Bees
 let geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1); // Smaller bees
-let material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+let material = new THREE.MeshBasicMaterial({
+  color: 0xffff00,
+  transparent: true, // Enable transparency
+  opacity: 1.0 // Full opacity initially
+});
 let instancedMesh = new THREE.InstancedMesh(geometry, material, 160);
 
 let dummy = new THREE.Object3D();
@@ -27,7 +32,84 @@ let randomFormulaTwo = () => Math.random() * Math.PI * 2;
 
 // controls
 const controls = new OrbitControls(camera, renderer.domElement);
+controls.autoRotate = true;
 controls.target.set(5, 5, 5);
+
+
+
+
+const particleCount = 10000;
+const boxGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+const explosionMaterial = new THREE.MeshBasicMaterial({
+  color: 0xffffff,
+  transparent: true, // Enable transparency
+  opacity: 1.0 // Full opacity initially
+});
+const particles = new THREE.InstancedMesh(boxGeometry, explosionMaterial, particleCount);
+scene.add(particles);
+
+let maxDiameter = 100; // maximum radius of explosion
+let timeToMax = 2; // time in seconds to reach maxDiameter
+let cooldownTime = 5; // time in seconds to cool down to the average level
+
+
+
+let clock = new THREE.Clock();
+
+
+const exDummy = new THREE.Object3D();
+
+// Create an array to store direction vectors for each particle
+const scatterDirections = new Array(particleCount);
+for (let i = 0; i < particleCount; i++) {
+  scatterDirections[i] = new THREE.Vector3(
+    (Math.random() - 0.5) * 2,
+    (Math.random() - 0.5) * 2,
+    (Math.random() - 0.5) * 2
+  ).normalize(); // Normalize to ensure even distribution
+}
+
+function updateParticles() {
+  const elapsedTime = clock.getElapsedTime() - 2; // Start with a 5 second delay
+  if (elapsedTime < 0) return; // If we're still in the delay period, do nothing
+
+  let progress = Math.min(elapsedTime / timeToMax, 1); // Progress of the explosion
+  let isInCooldownPhase = elapsedTime > timeToMax;
+  let cooldownProgress = isInCooldownPhase ? Math.min((elapsedTime - timeToMax) / cooldownTime, 1) : 0; // Cooldown progress
+
+  for (let i = 0; i < particleCount; i++) {
+    let distance = maxDiameter * (isInCooldownPhase ? (1 - cooldownProgress) : progress);
+    distance *= Math.cbrt(Math.random()); // Fill the volume
+
+    let angle = Math.random() * Math.PI * 2; // Random angle for x-y plane
+    let heightAngle = Math.acos(2 * Math.random() - 1); // Random angle for z-axis
+
+    // Calculate positions based on angles
+    let x = distance * Math.sin(heightAngle) * Math.cos(angle);
+    let y = distance * Math.sin(heightAngle) * Math.sin(angle);
+    let z = distance * Math.cos(heightAngle);
+
+    // Set the position
+    exDummy.position.set(x, y, z);
+    exDummy.updateMatrix();
+    particles.setMatrixAt(i, exDummy.matrix);
+  }
+
+  // Opacity update during cooldown phase to fade out before it ends
+  if (isInCooldownPhase) {
+    let adjustedOpacityProgress = Math.min(1, elapsedTime / (timeToMax + cooldownTime - 2)); // End fade out 3/4 through cooldown
+    explosionMaterial.opacity = 1 - adjustedOpacityProgress; // Fade out from full opacity to 0
+  }
+
+  // Hide particles after cooldown phase
+  if (cooldownProgress >= 1) {
+    particles.visible = false;
+  } else {
+    particles.instanceMatrix.needsUpdate = true;
+  }
+}
+
+
 
 
 // TV
@@ -228,13 +310,152 @@ for (let i = 0; i < 2; i++) {
 
 // Add the group to the scene
 tvGroup.scale.set(3,3,3)
+
+
+// TV ADD
 scene.add(tvGroup);
 
 
+function createLShapePart(length, isHorizontal, material) {
+  const points = [
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(isHorizontal ? length : 0, isHorizontal ? 0 : length, 0)
+  ];
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  return new THREE.Line(geometry, material);
+}
+
+function createSymmetricalLShape(size, material) {
+  const group = new THREE.Group();
+
+  const horizontalLine = createLShapePart(size, true, material);
+  const verticalLine = createLShapePart(size, false, material);
+
+  verticalLine.position.x = size; // Position vertical line at the end of horizontal
+
+  group.add(horizontalLine);
+  group.add(verticalLine);
+
+  return group;
+}
+
+function addLShapesToCorners(group, size, material, distanceFromCenter) {
+  const halfSize = size / 2;
+  const offset = distanceFromCenter + halfSize;
+
+  const lShapeTopRight = createSymmetricalLShape(size, material);
+  lShapeTopRight.rotation.z = Math.PI / 2 ;
+  lShapeTopRight.position.set(offset - 1, offset - 0.5 - 1, 0);
+  group.add(lShapeTopRight);
+
+  const lShapeTopLeft = createSymmetricalLShape(size, material);
+  lShapeTopLeft.rotation.z = Math.PI ;
+  lShapeTopLeft.position.set(-offset + 1 + 0.5, offset - 1, 0);
+  group.add(lShapeTopLeft);
+
+  const lShapeBottomLeft = createSymmetricalLShape(size, material);
+  lShapeBottomLeft.rotation.z = - Math.PI / 2;
+  lShapeBottomLeft.position.set(-offset + 1, -offset + 1.5, 0);
+  group.add(lShapeBottomLeft);
+
+  const lShapeBottomRight = createSymmetricalLShape(size, material);
+  
+  lShapeBottomRight.position.set(offset - 0.5 - 1, -offset + 1, 0);
+  group.add(lShapeBottomRight);
+}
+
+function createTick(position, material) {
+  const tickGeometry = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(position, 0.1, 0),
+    new THREE.Vector3(position, -0.1, 0)
+  ]);
+  return new THREE.Line(tickGeometry, material);
+}
+
+function createLineWithTicks(length, material) {
+  const group = new THREE.Group();
+  const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(-length / 2, 0, 0), 
+    new THREE.Vector3(length / 2, 0, 0)
+  ]);
+  const line = new THREE.Line(lineGeometry, material);
+  group.add(line);
+
+  const tickStep = length / 20;
+  for (let i = -length / 2; i <= length / 2; i += tickStep) {
+    if (i !== 0) { // Avoid center
+      group.add(createTick(i, material));
+    }
+  }
+
+  return group;
+}
+
+function createCrosshair() {
+  const group = new THREE.Group();
+  const material = new THREE.LineBasicMaterial({ color: 0x00FF00 });
+  const dashMaterial = new THREE.LineDashedMaterial({ color: 0x00FF00, dashSize: 0.1, gapSize: 0.1 });
+
+  // Main lines with ticks
+  const lineLength = 4;
+  const horizontalLine = createLineWithTicks(lineLength, material);
+  const verticalLine = createLineWithTicks(lineLength, material);
+  verticalLine.rotation.z = Math.PI / 2;
+
+  group.add(horizontalLine);
+  group.add(verticalLine);
+
+
+
+  // L-shapes
+  const lShapeSize = 0.5;
+  const distanceFromCenter = 2; // Adjust as needed
+  addLShapesToCorners(group, lShapeSize, material, distanceFromCenter);
+
+  group.scale.set(3,3,3); // Scaling the whole crosshair group
+  return group;
+}
+
+
+// Create the Crosshair Mesh
+const crosshair = createCrosshair();
+crosshair.position.z = -5; // Adjust if needed to move the crosshair in front of the camera
+scene.add(crosshair);
+
+
+// Your existing animation and rendering code...
+
+
+// Constants that define the nature of the trajectory
+const amplitudeX = 5; // amplitude of the x-axis movement
+const amplitudeY = 5; // amplitude of the y-axis movement
+const amplitudeZ = 5; // amplitude of the z-axis movement
+const frequencyX = 0.01; // frequency of the x-axis movement
+const frequencyY = 0.01; // frequency of the y-axis movement
+const frequencyZ = 0.01; // frequency of the z-axis movement
+const phaseX = 0; // phase shift of the x-axis movement
+const phaseY = Math.PI / 4; // phase shift of the y-axis movement
+const phaseZ = Math.PI / 2; // phase shift of the z-axis movement
+
+function animateCrosshair(time) {
+  // Time is in milliseconds, so we convert it to seconds for easier handling
+  const t = time * 0.1; // convert time to seconds for frequency scaling
+  
+  // Calculate a non-repeating path using sine and cosine
+  // By using different frequencies for each axis, the movement pattern will be non-repeating
+  const x = amplitudeX * Math.cos(frequencyX * t + phaseX);
+  const y = amplitudeY * Math.sin(frequencyY * t + phaseY);
+  const z = amplitudeZ * Math.sin(frequencyZ * t + phaseZ) + 12;
+  const rotx = Math.cos(frequencyX * t * 1);
+  const roty = Math.sin(frequencyY * t * 1);
+  const rotz = Math.sin(frequencyZ * t * 1);
+  // Update the crosshair's position
+  crosshair.position.set(x, y, z);
+  crosshair.rotation.set(rotx, roty, rotz);
+}
+
 
 // hexagon
-
-// Function to create a hexagon shape
 function createHexagonShape(size) {
   let hexShape = new THREE.Shape();
   hexShape.moveTo(size * Math.cos(0), size * Math.sin(0));
@@ -248,10 +469,10 @@ function createHexagonShape(size) {
 }
 
 // Hexagon geometry parameters
-let hexSize = 1;
+let hexSize = 0.5;
 let hexHeight = Math.sqrt(3) * hexSize;
 let hexThickness = 0.5;
-let spacing = 0.5;  // Control the space between hexagons
+let spacing = 0.2;  // Control the space between hexagons
 let missingFrequency = 0.1;  // Approx 1 in 10 hexagons will be missing
 
 
@@ -267,10 +488,18 @@ let extrudeSettings = { depth: hexThickness, bevelEnabled: false };
 let hexGeometry = new THREE.ExtrudeGeometry(hexShape, extrudeSettings);
 
 // Hexagon face material (orange color)
-let hexFaceMaterial = new THREE.MeshBasicMaterial({ color: 0xffa500 });
+let hexFaceMaterial = new THREE.MeshBasicMaterial({
+  color: 0xffa500,
+  transparent: true, // Enable transparency
+  opacity: 1.0 // Full opacity initially
+});
 
 // Hexagon side material (yellow color)
-let hexSideMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+let hexSideMaterial = new THREE.MeshBasicMaterial({
+  color: 0xffff00,
+  transparent: true, // Enable transparency
+  opacity: 1.0 // Full opacity initially
+});
 
 // Now we use an array of materials for the instanced mesh
 let instancedHexMesh = new THREE.InstancedMesh(hexGeometry, [hexFaceMaterial, hexSideMaterial], instanceCount);
@@ -314,7 +543,6 @@ instancedHexMesh.instanceMatrix.needsUpdate = true;
 // Now, instancedHexMesh is centered around the origin
 // You can move it as needed by changing its position.
 instancedHexMesh.position.set(0, 0, 0); // Center the hexagon grid at the scene's origin
-
 
 scene.add(instancedHexMesh);
 
@@ -380,14 +608,87 @@ function animateBee(index, time) {
   instancedMesh.setMatrixAt(index, dummy.matrix);
 }
 
+let step = 0;
+tvGroup.opacity = 0
+hexFaceMaterial.opacity = 0;
+hexSideMaterial.opacity = 0;
+console.log(tvGroup)
+tvGroup.scale.set(0, 0, 0)
+crosshair.scale.set(0, 0, 0)
+
+// Outside of your animate function
+let currentScaleTvGroup = new THREE.Vector3(0, 0, 0); // Start scale
+let currentScaleCrosshair = new THREE.Vector3(0, 0, 0); // Start scale
+
+const targetScaleTvGroup = new THREE.Vector3(3, 3, 3);
+const targetScaleCrosshair = new THREE.Vector3(1, 1, 1);
+const scaleDuration = 20000; // Duration in milliseconds
+let scaleStartTime = -1; // Initial time for the start of the scale
+
+let targetOpacity = 1; // Target opacity
+let opacityDuration = 20000; // Duration in milliseconds for opacity transition
+let opacityStartTime = -1; // Initial time for the start of the opacity transition
+
+
+
 function animate() {
   requestAnimationFrame(animate);
   let time = Date.now();
-  for (let i = 0; i < instancedMesh.count; i++) {
-    animateBee(i, time);
+  const elapsedTime = clock.getElapsedTime();
+
+  if (elapsedTime < 10) {
+    updateParticles();
   }
-  updateWave(time * 0.001);
+
+  if (elapsedTime > 10 && step === 0) {
+    scaleStartTime = elapsedTime; // Set the start time for scaling
+    opacityStartTime = elapsedTime; // Set the start time for opacity transition
+    explosionMaterial.opacity = 0
+    scene.remove(exDummy.name)
+    step = 1;
+  }
+
+  
+ // Smooth scale logic
+ if (scaleStartTime !== -1) {
+  let timeSinceStart = elapsedTime - scaleStartTime;
+  if (timeSinceStart < scaleDuration / 1000) {
+    let scaleProgress = timeSinceStart / (scaleDuration / 1000);
+    tvGroup.scale.lerpVectors(currentScaleTvGroup, targetScaleTvGroup, scaleProgress);
+    crosshair.scale.lerpVectors(currentScaleCrosshair, targetScaleCrosshair, scaleProgress);
+  } else {
+    // Ensure final scale is set
+    tvGroup.scale.copy(targetScaleTvGroup);
+    crosshair.scale.copy(targetScaleCrosshair);
+    scaleStartTime = -1; // Reset scale start time
+  }
+}
+
+  // Smooth opacity logic
+  if (opacityStartTime !== -1) {
+    let timeSinceStart = elapsedTime - opacityStartTime;
+    if (timeSinceStart < opacityDuration / 1000) {
+      let opacityProgress = timeSinceStart / (opacityDuration / 1000);
+      hexFaceMaterial.opacity = opacityProgress * targetOpacity;
+      hexSideMaterial.opacity = opacityProgress * targetOpacity;
+    } else {
+      hexFaceMaterial.opacity = targetOpacity;
+      hexSideMaterial.opacity = targetOpacity;
+      opacityStartTime = -1; // Reset opacity start time
+    }
+  }
+
+
+  if (elapsedTime > 6) {
+    for (let i = 0; i < instancedMesh.count; i++) {
+        animateBee(i, time);
+        updateWave(time * 0.001);
+        animateCrosshair(time);
+      }
+    }
   instancedMesh.instanceMatrix.needsUpdate = true;
+
+  
   renderer.render(scene, camera);
   controls.update();
 }
