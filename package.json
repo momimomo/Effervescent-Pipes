@@ -14,5 +14,9 @@
         "build": "parcel build src/index.html --public-url https://momimomo.github.io/Effervescent-Pipes/",
         "dev": "parcel src/index.html",
         "deploy": "npx gh-pages --dist dist"
+    },
+    "devDependencies": {
+        "@parcel/compressor-gzip": "^2.10.2",
+        "@parcel/config-default": "^2.10.2"
     }
 }

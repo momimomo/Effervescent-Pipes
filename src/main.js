@@ -2,24 +2,45 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { 
-  getRandomInt,
-  randomHexColor,
-  getRandomValueFromArray,
-  rotate,
-  getAllRotations,
-  createGrid,
-  createAll,
-  getAllShapesVariants,
-  reduceAllowedNeighbors,
-  findLowestEntropyCell,
-
-} from './utils'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 let scene = new THREE.Scene();
 let clock = new THREE.Clock();
+
 let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-let renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas') });
+
+renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas});
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+renderer.outputEncoding = THREE.SRGBColorSpace;
+
+const composer = new EffectComposer(renderer);
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
+
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+
+
+composer.addPass(bloomPass);
+
+
+const bloomParams = {
+  exposure: 1,
+  bloomThreshold: 0.8,
+  bloomStrength: 1.1,
+  bloomRadius: 0.3
+};
+
+// Set the bloom parameters as needed
+bloomPass.threshold = bloomParams.bloomThreshold
+bloomPass.strength = bloomParams.bloomStrength
+bloomPass.radius = bloomParams.bloomRadius
+
+
+
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 let ambientLight = new THREE.AmbientLight(0xaa77ee, 0.5);
@@ -54,26 +75,24 @@ controls.autoRotate = true;
 
 
 controls.target.set(0, 0, 0);
+let mainAnimStop = false;
 
 
+
+// Explosion
 const particleCount = 10000;
 const boxGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
 const explosionMaterial = new THREE.MeshBasicMaterial({
-  color: 0xffff00,
+  color: 0x33bbff,
   transparent: true, // Enable transparency
   opacity: 1.0 // Full opacity initially
 });
 const particles = new THREE.InstancedMesh(boxGeometry, explosionMaterial, particleCount);
 scene.add(particles);
 
-let maxDiameter = 100; // maximum radius of explosion
-let timeToMax = 2; // time in seconds to reach maxDiameter
-let cooldownTime = 5; // time in seconds to cool down to the average level
-
-
-
-
-
+let maxDiameter = 200; // maximum radius of explosion
+let timeToMax = 1; // time in seconds to reach maxDiameter
+let cooldownTime = 3; // time in seconds to cool down to the average level
 
 const exDummy = new THREE.Object3D();
 
@@ -111,12 +130,6 @@ function updateParticles() {
     exDummy.position.set(x, y, z);
     exDummy.updateMatrix();
     particles.setMatrixAt(i, exDummy.matrix);
-  }
-
-  // Opacity update during cooldown phase to fade out before it ends
-  if (isInCooldownPhase) {
-    let adjustedOpacityProgress = Math.min(1, elapsedTime / (timeToMax + cooldownTime - 2)); // End fade out 3/4 through cooldown
-    explosionMaterial.opacity = 1 - adjustedOpacityProgress; // Fade out from full opacity to 0
   }
 
   // Hide particles after cooldown phase
@@ -487,14 +500,14 @@ function createHexagonShape(size) {
 }
 
 // Hexagon geometry parameters
-let hexSize = 0.5;
+let hexSize = 0.4;
 let hexHeight = Math.sqrt(3) * hexSize;
-let hexThickness = 0.5;
-let spacing = 0.2;  // Control the space between hexagons
+let hexThickness = 0.3;
+let spacing = 0.1;  // Control the space between hexagons
 let missingFrequency = 0.1;  // Approx 1 in 10 hexagons will be missing
 
 
-let instanceCount = 1600;
+let instanceCount = 3000;
 let cols = Math.ceil(Math.sqrt(instanceCount)); // Calculate the number of columns needed
 
 // Boundary parameters are now defined after hexagon positions have been adjusted to center
@@ -649,111 +662,369 @@ let opacityStartTime = -1; // Initial time for the start of the opacity transiti
 
 
 
-// wfc
+mat.opacity = 0
+
+//begin raycaster
 
 
 
-// This should create every shape once, and reuse them using InstancedMesh or similar
-async function delayedLoop() {
+
+const setupRain = () => {
+  let oldCanvas = document.getElementById('canvas');
+  oldCanvas.width = 0;
+  oldCanvas.height = 0;
+  let canvas = document.getElementById('canvasTwo');
+  canvas.hidden = false;
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  oldCanvas.hidden = true;
+
+  let fontSize = 14;
+  const columns = canvas.width / fontSize;
+  const drops = [];
+
+  const fadeChars = []; // Added to keep track of fading characters
+
+  for (let i = 0; i < columns; i++) {
+    drops[i] = -1;
+  }
+
+  function getRandomChar() {
+    const charRanges = [
+      [0x0020, 0x003F], // Basic Latin
+      [0x16A0, 0x16EA], // Runic
+      [0x4E00, 0x5A00], // CJK Unified Ideographs
+      [0x16A0, 0x16EA], // Runic
+      [0x16A0, 0x16EA], // Runic
+      [0x16A0, 0x16EA], // Runic
+      [0x16A0, 0x16EA], // Runic
+      [0x30A0, 0x30FF], // Katakana
+      [0x16A0, 0x16EA], // Runic
+    ];
+
+    let charCode;
+    do {
+      const rangeIndex = Math.floor(Math.random() * charRanges.length);
+      const [start, end] = charRanges[rangeIndex];
+      charCode = Math.floor(Math.random() * (end - start + 1)) + start;
+    } while (
+      (charCode >= 0xD800 && charCode <= 0xDFFF)
+    );
+    return String.fromCharCode(charCode);
+  }
+
+  const asciiArt = [
+    "                               .;'.'o0KXNNNNNNWWWWWWWWWNNNNXXX0c....                                ",
+    "                              .'..,oOKKXNNNWWWWWWWWWWWWNNNNXXXKOl'..                                ",
+    "                             ....'lk0KXXNNNWWWWWWWWWWWNNNNNXXXK0Ol...                               ",
+    "                             ....;ldO0KXNNNWWWWWWWWWWWWWWWNNXK00ko;....                             ",
+    "            .                . ..;clxOKXXNNWWWWWWWWWWWWWWWNXXK0Odc;. ...           ....             ",
+    "     ...........   .        .   .':cldOKXXNWWMMWWWWWWWWWWWNXKKOdc:,.  ..     ............           ",
+    "   ...':llloddddoc::,..     .    .;codx0XXNNWWWWWMWWWWWWWNNXXKkdl:'    .   ...':oooddxxxolcc;..     ",
+    "  .''lOXNNNWWWWWNNNX0o,.    .    .;cdxddk0KXXNNWWWWWWWWWNXXKOxdxdc'       .''cOXNNNWWWWWNNNXKd;.    ",
+    " ...l0KXNNWWWWWWWNNXXKd,.        .'...   ..,:cldOO00Okdlc:,..  ....      ...cOKXNNWWWWWWNNNNXKx,.   ",
+    " ..,lkKXNWWWWWWWWWNXK0x:..       ..            .;ldxo;.              .   ..'ok0XNWWWWWWWWWWNK0kc... ",
+    "   ':okKXNWMWWWWWWNXKkl,. . ...  ...           'dOKNKd'             ...    .lxk0XNWWWWWWWWNXKko;. . ",
+    "   .;coOXNWWWWWWWWNX0xl,   .,'.. .;;'..       .oKKXNXKo.        .....,,.   .:dkOKNNWWWWWWWNX0ko,    ",
+    "   .....,:ldk00Oxoc;'...   .::,. .':olc:;;;;,,cOXNWWNKkl;;,,,;:cc;...;,    .','.,:cox00Oxoc;'',.    ",
+    "            'dkc.        . .,lc'...';ldddddxxdokXNWWN0xoddooodol:'..cc.  .  .       .dOl.        .  ",
+    "....'..    .lXNO,     ...'. .,cc,...';coodxkxl;,:lool;,cdxdoooc;...;l;  .'..''.     cKN0:     ...'. ",
+    ",;..,clc:::cONWKdc:::c:..;.   .;;.....':odxkxd;.      'lxkxddl;...';'   ':..,llcc::ckNWXxc:::cc'.;. ",
+    ".:;..':odxxc:dxlcddoo:'.;;     .,;....';odxk0Oxc'.. .:dO0Okxoc'....'.   .;:..;codxxl:odl:oxolc'.;;. ",
+    " .''..':dxko.  .cxkdc'.''.     .c:....',lddxkkdo:;,,;cldxxxdl;...         ''.,:coxkd,  .cxkdc,..'.  ",
+    "  .,...;odxdc'.:oxxo;...       .:;. ...':lc;;;;;;;::;;;;;;::;'..          .;..;:ldxdc'':oxdl:'..    ",
+    "  .;. .';:clllllllc:'.         .cl'  ...',;coooolllllodddl;,'..           .:...,;:cccclccc:;'.      ",
+    "  .;'  ..,c;,,,,:c;..           ;o;   ....';:,.........,:;'...            .:,  ..,::,,;,;:;..       ",
+    "   ',.  ..';lddo:'..            .l:.    ....',:oxxxkkdc;'....              ;:.  ..':oxxdc'..        ",
+    "   .;...  ..',,,'.. .            ;l'..     .';codddxxdl:'.    .            .:...  .',;;,'.  ..      ",
+    "   .:'......     ......          'o:.....   .............  ....            .:,......     ......     ",
+    "  ..;;,'...........';:'.         ,ol,...''.................';:,..         ..;:;'...........';:,..   ",
+    "                                   ",
+    "! EPILEPSY WARNING !",
+    "                                   ",
+    "FLASHING LIGHTS IMMINENT",
+  ];
+
+  const messages = [
+[
+"                     .......''... ...                                                               ",
+"                  ....'..'......................                                                    ",
+"                ...',,;;;,.......'..............                                                    ",
+"              ''.',,',,'.......',','.',,;;;;,'.........   .                                         ",
+"             '.'''.....  .. ...',::::ccclool::;,'.............                                      ",
+"            '.''..         ....;looddlldxkxolc:;,'''..'...'....   .........                         ",
+"           '.''.           ...;dddxkxodxxxxdolc:;,,,,;,'..''................                        ",
+"          ,.''.          ...'cxOxxkkkxkkxxxxdolcccc:cc:,,,;:,'...............                       ",
+"          ....           ..;oxOOOOOOOOOkkkkkxdddddooollclcc:;;;,,'...........                       ",
+"          ..             .,lxkOO0OOOOOOOOOOkxkkkxdoddoooolcccccc;,,'.........                       ",
+"                .       .'codxkkOOOOOOOOOOOOkkkkxxdddodolclolcc;,''..........                       ",
+"              .'.      .,:loodxkkkkkkkkkkkkkkkkxdddooooollllc::,'............                       ",
+"              ',.     .;lloddddxkkkkkkxxddddxxdooooooddolllc:;;'..............                      ",
+"             .'.      .ldooddxxxkkxolc::;;;;;:ccclllooolcc:;,;;..           ...                     ",
+"            ....      .looodddxdc:;'........  ..',:c:::;,'...'.                ..                   ",
+"            ...       .cddodkd:,,,..             ..,;;;,'....                  ...                  ",
+"             .        .;loloxc....                .:ool:,..                                         ",
+"            .          'clooo;....                .lOOkdl,.                                         ",
+"           ...        .;loooo;...                 ,x0Okdl;..                   ..                   ",
+"           ...        .cdddddl;,,'....          ..lOOOOxo:...                ....                   ",
+"          .''.   ..  ..:dxxxxxocllc;,..     ....,ckOOOOxo:....             ..''..                   ",
+"          .'..   ......:dxxdxxxdloddo:'....'';c:lkOOOOOkd:'......................                   ",
+"          .....  ......'lddxxxxkkkxdl;;;;;;;;:::dkOOOOOkoc'...........''.........                   ",
+"          .....  ..... .,ldxxkkOOO0Odc:;;,,,'.:xkkkkOOOOdc,.........,,'''''......                   ",
+"          .....   .......:dxxkkxkOOkkxlc;'....oOkkkkOOOkdc,......  .';;,''.......                   ",
+"          ,....  ....'..':dxxkxxkxxxdoc;'....:ddlcclodol:,....... . ..,,,'.......                   ",
+"           ...  ...',,,'':dxxkkxdddoc:'...':okkxc'..',,'...      ... ............                   ",
+"                 .';:loc;cdxxxxdoolc;,,;;;cdxxxddl;'.....         .   ............                  ",
+"                  .:oxxd:cdxkxxdool::llc;;:loodddoc:,.......   ...     ..........                   ",
+"                   ..'''';okkkxddolcloc;,';clllcc:;,,,,,,;'..   ....   ..........                   ",
+"                       ..'lkkkxxxdoooo:'............'''.....           ..........                   ",
+"                       ...;dkxxxdddddo:..   ..:oclooxkxl:ll,....       .........                    ",
+"          .      ..........cdxxdddddooc,':l:;;ldddooddoc:c:,.....  ............                     ",
+"          ;.   .','''.......:odddoooool:lxOkxooddooddddlcc;,,,,...............                      ",
+"          ;'..,;;,,,'. ......,loooooollodkOOkxddddolllcccc:;,................                       ",
+"          .. .;;;,,,,.  .......:oooooooodxkkkxxdoolc::;,,'..................                        ",
+"          .. .';;,,,,.. ........,loodddodxxxxxxdolc:;,,'...................                         ",
+"          ..  .;;,,,,'. ..........:odddddxxxxxxddlc:;;,'..................                          ",
+"          ..  .,;,,,,,.. ..........':llodxkkkkkxxdoolccc:;,''............                           ",
+"          .....,;;,,,,'.  ............;cldxkkkkkkkkxddoolcc::;;,,,....                              ",
+"             ..';;;,,'''.  .............,:ldxxkkkkkxdooccccc:;,,'....             .....             ",
+"              .',;;,,,'''.  ..............';clllooollc:;,,;;;,.....              .''''              ",
+"              .',;;,,,,,,.   .......       ..',,,;;;;;,'.........              ..'''                ",
+"               .',;;,,,,,,.    ....           ...............                ..'''                  ",
+    ],
+    [
+      "BARTŁOMIEJ JODŁOWSKI",
+      "  ",
+      "Software Developer",
+      "  ",
+      "  ",
+      "ponctan@gmail.com",
+      "  ",
+      "linkedin.com/in/momimomo/"
+    ],
+    // []
+  ];
+
+  let messageDisplayDuration = 100; // Number of frames for each message to be displayed
+  let messageDisplayFrequency = 20; // Number of frames between each message display
+
+  let currentMessageIndex = 0;
+  let messageDisplayCounter = 0;
+
   
-const unique3DShapes = [
-  "110000",
-  "010100",
-  "111000",
-  "111001",
-  "111100",
-  "111110",
-  "111111",
-  "000000"
-];
-
-
-const cellSize = 0.33333333;
-const wfcboxgeom = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
-
-function createThreeJSShape(shape) {
-const color = new THREE.Color(randomHexColor(["16", "0F", "28", "0F", "25", "0F"]));
-
-const material = new THREE.MeshToonMaterial({ color });
-
-const countOfOnes = shape.split("").filter(i => i === "1").length;
-  // count of needed cubes is equal to central one + all 1s in shape
-  const cubes = new THREE.InstancedMesh(wfcboxgeom, material, 1 + countOfOnes);
-
-  const shapeObject = new THREE.Object3D();
-  
-  if (shape === "000000") {
-    return shapeObject;
+  function drawMessage(opacity) {
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.fillStyle = '#00ff00';
+    ctx.font = `${fontSize}px monospace`;
+    const currentMessage = messages[currentMessageIndex];
+    const yOffset = (canvas.height / 2) - fontSize * (currentMessage.length / 2);
+    for (let i = 0; i < currentMessage.length; i++) {
+      const textWidth = ctx.measureText(currentMessage[i]).width;
+      const xOffset = (canvas.width - textWidth) / 2;
+      ctx.fillText(currentMessage[i], xOffset, yOffset + i * fontSize);
+    }
+    ctx.restore();
   }
 
-  let matrixIdx = 0
+  let asciiArtDisplayTime = 0;
+  const maxAsciiArtDisplayTime = 40;
 
-// initial one
-cubes.setMatrixAt(matrixIdx, new THREE.Matrix4().setPosition(0, 0, 0));
-
-for (let i = 0; i < 6; i++) {
-  if (shape[i] === "1") {
-    const x = (i === 0 || i === 1) ? cellSize * (i * 2 - 1) : 0;
-    const y = (i === 2 || i === 3) ? cellSize * (i * 2 - 5) : 0;
-    const z = (i === 4 || i === 5) ? cellSize * (i * 2 - 9) : 0;
-    matrixIdx ++
-    
-    cubes.setMatrixAt(matrixIdx, new THREE.Matrix4().setPosition(x, y, z));
-  }
-}
-cubes.instanceMatrix.needsUpdate = true
-shapeObject.add(cubes);
-return shapeObject;
-}
-
-
-
-const allShapesVariants = getAllShapesVariants(unique3DShapes);
-
-let grid = createGrid(9, allShapesVariants);
-
-grid[4][4][4] = {shape: '111111', allowed: []}
-reduceAllowedNeighbors([4,4,4], grid)
-
-
-for (let i=0;i<1024;i++) {
-const lowestEntropyCell = findLowestEntropyCell(grid)
-if (lowestEntropyCell) {
-  const [x,y,z] = lowestEntropyCell;
-  grid[x][y][z] = {
-    shape: getRandomValueFromArray(grid[x][y][z]['allowed']),
-    allowed: []
-  }
-  reduceAllowedNeighbors([x,y,z], grid)
-}
-
-}
-
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-  for (let x = 0; x < grid.length; x++) {
-    for (let y = 0; y < grid.length; y++) {
-      for (let z = 0; z < grid.length; z++) {
-        const t = grid[x][y][z].shape;
-        if (t) {
-          const obj = createThreeJSShape(t);
-          scene.add(obj);
-          obj.position.set(x, y, z);
-        }
-        await sleep(1);
-      }
+  function drawAsciiArt() {
+    ctx.fillStyle = '#00ff00';
+    ctx.font = `${fontSize}px monospace`;
+    const yOffset = (canvas.height / 2) - fontSize * (asciiArt.length / 2);
+    for (let i = 0; i < asciiArt.length; i++) {
+      const textWidth = ctx.measureText(asciiArt[i]).width;
+      const xOffset = (canvas.width - textWidth) / 2;
+      ctx.fillText(asciiArt[i], xOffset, yOffset + i * fontSize);
     }
   }
 
 
+  let transitionProgress = 0;
+  const transitionDuration = 16000; 
+
+  function updateProgress() {
+    transitionProgress += 50;
+    if (transitionProgress > transitionDuration) {
+      transitionProgress = transitionDuration;
+    }
+  }
+
+
+  function drawAsciiArt() {
+    ctx.fillStyle = '#00ff00';
+    ctx.font = `${fontSize}px monospace`;
+    const yOffset = (canvas.height / 2) - fontSize * (asciiArt.length / 2);
+    for (let i = 0; i < asciiArt.length; i++) {
+      const textWidth = ctx.measureText(asciiArt[i]).width;
+      const xOffset = (canvas.width - textWidth) / 2;
+      ctx.fillText(asciiArt[i], xOffset, yOffset + i * fontSize);
+    }
+  }
+
+  function smoothstep(edge0, edge1, x) {
+    const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+    return t * t * (3 - 2 * t);
+  }
+  function drawMatrixRain() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.font = `${fontSize}px monospace`;
+    for (let i = 0; i < drops.length; i++) {
+      const char = getRandomChar();
+
+      const progress = smoothstep(0, 1, transitionProgress / transitionDuration);
+      const angle = (i / drops.length) * 2 * Math.PI + progress * 2 * Math.PI;
+      const radiusFactor = progress * 0.5;
+      const maxRadius = Math.max(canvas.width, canvas.height) / 2;
+      const radius = fontSize * drops[i] * (1 - radiusFactor) + maxRadius * radiusFactor;
+      const x = (1 - progress) * (i * fontSize) + progress * (canvas.width / 2 + Math.cos(angle) * radius);
+      const y = (1 - progress) * (drops[i] * fontSize) + progress * (canvas.height / 2 + Math.sin(angle) * radius);
+
+      ctx.fillStyle = '#00ff00';
+      ctx.fillText(char, x, y);
+
+      if (Math.random() < 0.01 || drops[i] * fontSize > canvas.height * 2) {
+        drops[i] = 0;
+      }
+
+      // Fading character logic
+      if (Math.random() < 0.0025) { // Adjust probability to control how often characters fade
+        fadeChars.push({
+          char: char,
+          x: x,
+          y: y,
+          opacity: 1,
+          fadeSpeed: Math.random() * 0.01 + 0.005, // Adjust fade speed
+          glitchSpeed: Math.random() * 0.15 + 0.01 // Added glitch speed
+        });
+      }
+
+      drops[i]++;
+    }
+
+// Draw fading characters
+for (let i = fadeChars.length - 1; i >= 0; i--) {
+      ctx.fillStyle = `rgba(0, 255, 0, ${fadeChars[i].opacity})`;
+      ctx.fillText(fadeChars[i].char, fadeChars[i].x, fadeChars[i].y);
+      fadeChars[i].opacity -= fadeChars[i].fadeSpeed;
+
+      // Glitch effect: change character randomly
+      if (Math.random() < fadeChars[i].glitchSpeed) { // Adjust glitch probability
+        fadeChars[i].char = getRandomChar();
+      }
+
+      if (fadeChars[i].opacity <= 0) {
+        fadeChars.splice(i, 1);
+      }
+    }
+  }
+  function draw() {
+    if (asciiArtDisplayTime < maxAsciiArtDisplayTime) {
+      drawAsciiArt();
+      asciiArtDisplayTime++;
+
+      const yOffset = Math.floor((canvas.height / 2) - fontSize * (asciiArt.length / 2));
+      for (let i = 0; i < asciiArt.length; i++) {
+        const textWidth = ctx.measureText(asciiArt[i]).width;
+        const xOffset = Math.floor((canvas.width - textWidth) / 2 / fontSize);
+        for (let j = 0; j < asciiArt[i].length; j++) {
+          if (Math.random() < 0.001 * (1 + asciiArtDisplayTime / maxAsciiArtDisplayTime)) {
+            const x = xOffset + j;
+            if (drops[x] === -1) {
+              drops[x] = yOffset / fontSize + i;
+            }
+          }
+        }
+      }
+    } else if (transitionProgress < transitionDuration) {
+      drawMatrixRain();
+      updateProgress();
+    } else {
+      drawMatrixRain();
+      if (messageDisplayCounter < messageDisplayDuration) {
+        const opacity = Math.min(1, messageDisplayCounter / 10);
+        drawMessage(opacity);
+      } else if (messageDisplayCounter < messageDisplayDuration + messageDisplayFrequency) {
+        // Do nothing
+      } else {
+        messageDisplayCounter = 0;
+        currentMessageIndex = (currentMessageIndex + 1) % messages.length;
+      }
+      messageDisplayCounter++;
+    }
+  }
+
+  setInterval(draw, 50);
 }
 
-mat.opacity = 0
 
+
+// Create a raycaster for later use
+const raycaster = new THREE.Raycaster();
+// Store the mouse position
+const mouse = new THREE.Vector2();
+// Used for touch screens
+const touch = new THREE.Vector2();
+
+function onClick(event) {
+  // Calculate mouse position in normalized device coordinates
+  // (-1 to +1) for both components
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  checkIntersection(mouse);
+}
+
+function onTouch(event) {
+  // Assume single touch point for simplicity
+  if (event.touches.length > 0) {
+    const touchEvent = event.touches[0];
+    touch.x = (touchEvent.clientX / window.innerWidth) * 2 - 1;
+    touch.y = -(touchEvent.clientY / window.innerHeight) * 2 + 1;
+
+    checkIntersection(touch);
+  }
+}
+
+function checkIntersection(coords) {
+  // Update the picking ray with the camera and mouse position
+  raycaster.setFromCamera(coords, camera);
+
+  // Calculate objects intersecting the picking ray
+  const intersects = raycaster.intersectObject(tvGroup);
+  console.log(raycaster)
+
+  if (intersects.length > 0) {
+    // Assuming 'box' is your mesh and it's the first intersected object
+    // Trigger your function here
+    yourFunction(intersects[0]);
+  }
+}
+
+function yourFunction(intersection) {
+  // Do something with the intersection object, e.g., change color, show details, etc.
+  mainAnimStop = true;
+  renderer.clear()
+  setupRain();
+  console.log('Box was clicked', intersection);
+}
+
+// Bind the event listeners for mouse and touch events
+renderer.domElement.addEventListener('click', onClick, false);
+renderer.domElement.addEventListener('touchstart', onTouch, false);
+
+
+
+
+// Render Loop Start
 function animate() {
+  if (mainAnimStop) return null;
   requestAnimationFrame(animate);
   let time = Date.now();
   const elapsedTime = clock.getElapsedTime();
@@ -761,31 +1032,13 @@ function animate() {
     updateParticles();
   }
 
-  if (elapsedTime > 10 && step === 0) {
+  if (elapsedTime > 6 && step === 0) {
     scaleStartTime = elapsedTime; // Set the start time for scaling
     opacityStartTime = elapsedTime; // Set the start time for opacity transition
     explosionMaterial.opacity = 0
     scene.remove(exDummy.name)
     step = 1;
   }
-
-  // Maybe remove WFC completely?
-  // if (elapsedTime > 30 && step === 1) {
-  //   scene.remove(instancedHexMesh.name)
-  //   console.log(scene)
-
-  //   scene.remove.apply(scene, scene.children);
-
-    
-  //   console.log('step', step)
-  //   step = 2
-  //   scene.add(ambientLight);
-
-  //   delayedLoop();
-  //   console.log(scene)
-  // }
-
-  // zdecydowanie klikniecie na tyl powinno wywolywac animacje z mojego aktualnego home
 
   
  // Smooth scale logic
@@ -830,7 +1083,7 @@ function animate() {
   instancedMesh.instanceMatrix.needsUpdate = true;
 
   controls.autoRotateSpeed = 1200 * clock.getDelta();
-  renderer.render(scene, camera);
+  composer.render();
   controls.update();
 }
 
