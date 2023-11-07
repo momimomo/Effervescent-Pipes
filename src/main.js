@@ -2,23 +2,40 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { 
+  getRandomInt,
+  randomHexColor,
+  getRandomValueFromArray,
+  rotate,
+  getAllRotations,
+  createGrid,
+  createAll,
+  getAllShapesVariants,
+  reduceAllowedNeighbors,
+  findLowestEntropyCell,
+
+} from './utils'
 
 let scene = new THREE.Scene();
+let clock = new THREE.Clock();
 let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 let renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas') });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
-let ambientLight = new THREE.AmbientLight(0x33ee33, 0.5);
+let ambientLight = new THREE.AmbientLight(0xaa77ee, 0.5);
 scene.add(ambientLight);
 
+
+
+
 // Bees
-let geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1); // Smaller bees
-let material = new THREE.MeshBasicMaterial({
+let geometry = new THREE.DodecahedronGeometry(0.3); // Smaller bees
+let mat = new THREE.MeshBasicMaterial({
   color: 0xffff00,
   transparent: true, // Enable transparency
   opacity: 1.0 // Full opacity initially
 });
-let instancedMesh = new THREE.InstancedMesh(geometry, material, 160);
+let instancedMesh = new THREE.InstancedMesh(geometry, mat, 160);
 
 let dummy = new THREE.Object3D();
 let origins = [];
@@ -32,16 +49,17 @@ let randomFormulaTwo = () => Math.random() * Math.PI * 2;
 
 // controls
 const controls = new OrbitControls(camera, renderer.domElement);
+const speed = 70000
 controls.autoRotate = true;
-controls.target.set(5, 5, 5);
 
 
+controls.target.set(0, 0, 0);
 
 
 const particleCount = 10000;
 const boxGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
 const explosionMaterial = new THREE.MeshBasicMaterial({
-  color: 0xffffff,
+  color: 0xffff00,
   transparent: true, // Enable transparency
   opacity: 1.0 // Full opacity initially
 });
@@ -54,7 +72,7 @@ let cooldownTime = 5; // time in seconds to cool down to the average level
 
 
 
-let clock = new THREE.Clock();
+
 
 
 const exDummy = new THREE.Object3D();
@@ -119,10 +137,10 @@ const tvGroup = new THREE.Group();
 
 
 // Materials
-const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x88dd88 });
+const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x88aa44 });
 const screenMaterial = new THREE.MeshPhongMaterial({ color: 0x444411, shininess: 100, specular: 0x222222 });
-const crtScreenMaterial = new THREE.MeshPhongMaterial({ color: 0x000000, shininess: 100, specular: 0x222222 });
-const buttonMaterial = new THREE.MeshPhongMaterial({ color: 0x777777 });
+const crtScreenMaterial = new THREE.MeshPhongMaterial({ color: 0x226622, shininess: 100, specular: 0x888888 });
+const buttonMaterial = new THREE.MeshPhongMaterial({ color: 0x77aadd });
 const antennaMaterial = new THREE.MeshPhongMaterial({ color: 0x999999 });
 const antennaTopMaterial = new THREE.MeshPhongMaterial({ color: 0xcccccc });
 const waveMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
@@ -316,20 +334,20 @@ tvGroup.scale.set(3,3,3)
 scene.add(tvGroup);
 
 
-function createLShapePart(length, isHorizontal, material) {
+function createLShapePart(length, isHorizontal, mat) {
   const points = [
     new THREE.Vector3(0, 0, 0),
     new THREE.Vector3(isHorizontal ? length : 0, isHorizontal ? 0 : length, 0)
   ];
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  return new THREE.Line(geometry, material);
+  return new THREE.Line(geometry, mat);
 }
 
-function createSymmetricalLShape(size, material) {
+function createSymmetricalLShape(size, mat) {
   const group = new THREE.Group();
 
-  const horizontalLine = createLShapePart(size, true, material);
-  const verticalLine = createLShapePart(size, false, material);
+  const horizontalLine = createLShapePart(size, true, mat);
+  const verticalLine = createLShapePart(size, false, mat);
 
   verticalLine.position.x = size; // Position vertical line at the end of horizontal
 
@@ -339,52 +357,52 @@ function createSymmetricalLShape(size, material) {
   return group;
 }
 
-function addLShapesToCorners(group, size, material, distanceFromCenter) {
+function addLShapesToCorners(group, size, mat, distanceFromCenter) {
   const halfSize = size / 2;
   const offset = distanceFromCenter + halfSize;
 
-  const lShapeTopRight = createSymmetricalLShape(size, material);
+  const lShapeTopRight = createSymmetricalLShape(size, mat);
   lShapeTopRight.rotation.z = Math.PI / 2 ;
   lShapeTopRight.position.set(offset - 1, offset - 0.5 - 1, 0);
   group.add(lShapeTopRight);
 
-  const lShapeTopLeft = createSymmetricalLShape(size, material);
+  const lShapeTopLeft = createSymmetricalLShape(size, mat);
   lShapeTopLeft.rotation.z = Math.PI ;
   lShapeTopLeft.position.set(-offset + 1 + 0.5, offset - 1, 0);
   group.add(lShapeTopLeft);
 
-  const lShapeBottomLeft = createSymmetricalLShape(size, material);
+  const lShapeBottomLeft = createSymmetricalLShape(size, mat);
   lShapeBottomLeft.rotation.z = - Math.PI / 2;
   lShapeBottomLeft.position.set(-offset + 1, -offset + 1.5, 0);
   group.add(lShapeBottomLeft);
 
-  const lShapeBottomRight = createSymmetricalLShape(size, material);
+  const lShapeBottomRight = createSymmetricalLShape(size, mat);
   
   lShapeBottomRight.position.set(offset - 0.5 - 1, -offset + 1, 0);
   group.add(lShapeBottomRight);
 }
 
-function createTick(position, material) {
+function createTick(position, mat) {
   const tickGeometry = new THREE.BufferGeometry().setFromPoints([
     new THREE.Vector3(position, 0.1, 0),
     new THREE.Vector3(position, -0.1, 0)
   ]);
-  return new THREE.Line(tickGeometry, material);
+  return new THREE.Line(tickGeometry, mat);
 }
 
-function createLineWithTicks(length, material) {
+function createLineWithTicks(length, mat) {
   const group = new THREE.Group();
   const lineGeometry = new THREE.BufferGeometry().setFromPoints([
     new THREE.Vector3(-length / 2, 0, 0), 
     new THREE.Vector3(length / 2, 0, 0)
   ]);
-  const line = new THREE.Line(lineGeometry, material);
+  const line = new THREE.Line(lineGeometry, mat);
   group.add(line);
 
   const tickStep = length / 20;
   for (let i = -length / 2; i <= length / 2; i += tickStep) {
     if (i !== 0) { // Avoid center
-      group.add(createTick(i, material));
+      group.add(createTick(i, mat));
     }
   }
 
@@ -393,13 +411,13 @@ function createLineWithTicks(length, material) {
 
 function createCrosshair() {
   const group = new THREE.Group();
-  const material = new THREE.LineBasicMaterial({ color: 0x00FF00 });
+  const mat = new THREE.LineBasicMaterial({ color: 0x00FF00 });
   const dashMaterial = new THREE.LineDashedMaterial({ color: 0x00FF00, dashSize: 0.1, gapSize: 0.1 });
 
   // Main lines with ticks
   const lineLength = 4;
-  const horizontalLine = createLineWithTicks(lineLength, material);
-  const verticalLine = createLineWithTicks(lineLength, material);
+  const horizontalLine = createLineWithTicks(lineLength, mat);
+  const verticalLine = createLineWithTicks(lineLength, mat);
   verticalLine.rotation.z = Math.PI / 2;
 
   group.add(horizontalLine);
@@ -410,7 +428,7 @@ function createCrosshair() {
   // L-shapes
   const lShapeSize = 0.5;
   const distanceFromCenter = 2; // Adjust as needed
-  addLShapesToCorners(group, lShapeSize, material, distanceFromCenter);
+  addLShapesToCorners(group, lShapeSize, mat, distanceFromCenter);
 
   group.scale.set(3,3,3); // Scaling the whole crosshair group
   return group;
@@ -476,7 +494,7 @@ let spacing = 0.2;  // Control the space between hexagons
 let missingFrequency = 0.1;  // Approx 1 in 10 hexagons will be missing
 
 
-let instanceCount = 800;
+let instanceCount = 1600;
 let cols = Math.ceil(Math.sqrt(instanceCount)); // Calculate the number of columns needed
 
 // Boundary parameters are now defined after hexagon positions have been adjusted to center
@@ -487,14 +505,14 @@ let hexShape = createHexagonShape(hexSize);
 let extrudeSettings = { depth: hexThickness, bevelEnabled: false };
 let hexGeometry = new THREE.ExtrudeGeometry(hexShape, extrudeSettings);
 
-// Hexagon face material (orange color)
+// Hexagon face mat (orange color)
 let hexFaceMaterial = new THREE.MeshBasicMaterial({
   color: 0xffa500,
   transparent: true, // Enable transparency
   opacity: 1.0 // Full opacity initially
 });
 
-// Hexagon side material (yellow color)
+// Hexagon side mat (yellow color)
 let hexSideMaterial = new THREE.MeshBasicMaterial({
   color: 0xffff00,
   transparent: true, // Enable transparency
@@ -631,11 +649,114 @@ let opacityStartTime = -1; // Initial time for the start of the opacity transiti
 
 
 
+// wfc
+
+
+
+// This should create every shape once, and reuse them using InstancedMesh or similar
+async function delayedLoop() {
+  
+const unique3DShapes = [
+  "110000",
+  "010100",
+  "111000",
+  "111001",
+  "111100",
+  "111110",
+  "111111",
+  "000000"
+];
+
+
+const cellSize = 0.33333333;
+const wfcboxgeom = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
+
+function createThreeJSShape(shape) {
+const color = new THREE.Color(randomHexColor(["16", "0F", "28", "0F", "25", "0F"]));
+
+const material = new THREE.MeshToonMaterial({ color });
+
+const countOfOnes = shape.split("").filter(i => i === "1").length;
+  // count of needed cubes is equal to central one + all 1s in shape
+  const cubes = new THREE.InstancedMesh(wfcboxgeom, material, 1 + countOfOnes);
+
+  const shapeObject = new THREE.Object3D();
+  
+  if (shape === "000000") {
+    return shapeObject;
+  }
+
+  let matrixIdx = 0
+
+// initial one
+cubes.setMatrixAt(matrixIdx, new THREE.Matrix4().setPosition(0, 0, 0));
+
+for (let i = 0; i < 6; i++) {
+  if (shape[i] === "1") {
+    const x = (i === 0 || i === 1) ? cellSize * (i * 2 - 1) : 0;
+    const y = (i === 2 || i === 3) ? cellSize * (i * 2 - 5) : 0;
+    const z = (i === 4 || i === 5) ? cellSize * (i * 2 - 9) : 0;
+    matrixIdx ++
+    
+    cubes.setMatrixAt(matrixIdx, new THREE.Matrix4().setPosition(x, y, z));
+  }
+}
+cubes.instanceMatrix.needsUpdate = true
+shapeObject.add(cubes);
+return shapeObject;
+}
+
+
+
+const allShapesVariants = getAllShapesVariants(unique3DShapes);
+
+let grid = createGrid(9, allShapesVariants);
+
+grid[4][4][4] = {shape: '111111', allowed: []}
+reduceAllowedNeighbors([4,4,4], grid)
+
+
+for (let i=0;i<1024;i++) {
+const lowestEntropyCell = findLowestEntropyCell(grid)
+if (lowestEntropyCell) {
+  const [x,y,z] = lowestEntropyCell;
+  grid[x][y][z] = {
+    shape: getRandomValueFromArray(grid[x][y][z]['allowed']),
+    allowed: []
+  }
+  reduceAllowedNeighbors([x,y,z], grid)
+}
+
+}
+
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+  for (let x = 0; x < grid.length; x++) {
+    for (let y = 0; y < grid.length; y++) {
+      for (let z = 0; z < grid.length; z++) {
+        const t = grid[x][y][z].shape;
+        if (t) {
+          const obj = createThreeJSShape(t);
+          scene.add(obj);
+          obj.position.set(x, y, z);
+        }
+        await sleep(1);
+      }
+    }
+  }
+
+
+}
+
+mat.opacity = 0
+
 function animate() {
   requestAnimationFrame(animate);
   let time = Date.now();
   const elapsedTime = clock.getElapsedTime();
-
   if (elapsedTime < 10) {
     updateParticles();
   }
@@ -647,6 +768,24 @@ function animate() {
     scene.remove(exDummy.name)
     step = 1;
   }
+
+  // Maybe remove WFC completely?
+  // if (elapsedTime > 30 && step === 1) {
+  //   scene.remove(instancedHexMesh.name)
+  //   console.log(scene)
+
+  //   scene.remove.apply(scene, scene.children);
+
+    
+  //   console.log('step', step)
+  //   step = 2
+  //   scene.add(ambientLight);
+
+  //   delayedLoop();
+  //   console.log(scene)
+  // }
+
+  // zdecydowanie klikniecie na tyl powinno wywolywac animacje z mojego aktualnego home
 
   
  // Smooth scale logic
@@ -671,9 +810,11 @@ function animate() {
       let opacityProgress = timeSinceStart / (opacityDuration / 1000);
       hexFaceMaterial.opacity = opacityProgress * targetOpacity;
       hexSideMaterial.opacity = opacityProgress * targetOpacity;
+      mat.opacity = opacityProgress * targetOpacity;
     } else {
       hexFaceMaterial.opacity = targetOpacity;
       hexSideMaterial.opacity = targetOpacity;
+      mat.opacity = targetOpacity;
       opacityStartTime = -1; // Reset opacity start time
     }
   }
@@ -688,12 +829,13 @@ function animate() {
     }
   instancedMesh.instanceMatrix.needsUpdate = true;
 
-  
+  controls.autoRotateSpeed = 1200 * clock.getDelta();
   renderer.render(scene, camera);
   controls.update();
 }
 
 instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 scene.add(instancedMesh);
+
 camera.position.z = 50;
 animate();
