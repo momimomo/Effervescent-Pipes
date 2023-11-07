@@ -855,7 +855,6 @@ const setupRain = () => {
   function drawAsciiArt() {
     ctx.fillStyle = '#00ff00';
     ctx.font = `16px monospace`;
-    ctx.font.spacing = '8px'
     const yOffset = (canvas.height / 2) - fontSize * (asciiArt.length / 2);
     for (let i = 0; i < asciiArt.length; i++) {
       const textWidth = ctx.measureText(asciiArt[i]).width;
