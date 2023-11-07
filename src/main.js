@@ -742,57 +742,61 @@ const setupRain = () => {
     "   .:'......     ......          'o:.....   .............  ....            .:,......     ......     ",
     "  ..;;,'...........';:'.         ,ol,...''.................';:,..         ..;:;'...........';:,..   ",
     "                                   ",
-    "! EPILEPSY WARNING !",
+    "W A R N I N G !",
     "                                   ",
-    "FLASHING LIGHTS IMMINENT",
+    "F L A S H I N G    L I G H T S",
   ];
 
   const messages = [
-[
-"                     .......''... ...                                                               ",
-"                  ....'..'......................                                                    ",
-"                ...',,;;;,.......'..............                                                    ",
-"              ''.',,',,'.......',','.',,;;;;,'.........   .                                         ",
-"             '.'''.....  .. ...',::::ccclool::;,'.............                                      ",
-"            '.''..         ....;looddlldxkxolc:;,'''..'...'....   .........                         ",
-"           '.''.           ...;dddxkxodxxxxdolc:;,,,,;,'..''................                        ",
-"          ,.''.          ...'cxOxxkkkxkkxxxxdolcccc:cc:,,,;:,'...............                       ",
-"          ....           ..;oxOOOOOOOOOkkkkkxdddddooollclcc:;;;,,'...........                       ",
-"          ..             .,lxkOO0OOOOOOOOOOkxkkkxdoddoooolcccccc;,,'.........                       ",
-"                .       .'codxkkOOOOOOOOOOOOkkkkxxdddodolclolcc;,''..........                       ",
-"              .'.      .,:loodxkkkkkkkkkkkkkkkkxdddooooollllc::,'............                       ",
-"              ',.     .;lloddddxkkkkkkxxddddxxdooooooddolllc:;;'..............                      ",
-"             .'.      .ldooddxxxkkxolc::;;;;;:ccclllooolcc:;,;;..           ...                     ",
-"            ....      .looodddxdc:;'........  ..',:c:::;,'...'.                ..                   ",
-"            ...       .cddodkd:,,,..             ..,;;;,'....                  ...                  ",
-"             .        .;loloxc....                .:ool:,..                                         ",
-"            .          'clooo;....                .lOOkdl,.                                         ",
-"           ...        .;loooo;...                 ,x0Okdl;..                   ..                   ",
-"           ...        .cdddddl;,,'....          ..lOOOOxo:...                ....                   ",
-"          .''.   ..  ..:dxxxxxocllc;,..     ....,ckOOOOxo:....             ..''..                   ",
-"          .'..   ......:dxxdxxxdloddo:'....'';c:lkOOOOOkd:'......................                   ",
-"          .....  ......'lddxxxxkkkxdl;;;;;;;;:::dkOOOOOkoc'...........''.........                   ",
-"          .....  ..... .,ldxxkkOOO0Odc:;;,,,'.:xkkkkOOOOdc,.........,,'''''......                   ",
-"          .....   .......:dxxkkxkOOkkxlc;'....oOkkkkOOOkdc,......  .';;,''.......                   ",
-"          ,....  ....'..':dxxkxxkxxxdoc;'....:ddlcclodol:,....... . ..,,,'.......                   ",
-"           ...  ...',,,'':dxxkkxdddoc:'...':okkxc'..',,'...      ... ............                   ",
-"                 .';:loc;cdxxxxdoolc;,,;;;cdxxxddl;'.....         .   ............                  ",
-"                  .:oxxd:cdxkxxdool::llc;;:loodddoc:,.......   ...     ..........                   ",
-"                   ..'''';okkkxddolcloc;,';clllcc:;,,,,,,;'..   ....   ..........                   ",
-"                       ..'lkkkxxxdoooo:'............'''.....           ..........                   ",
-"                       ...;dkxxxdddddo:..   ..:oclooxkxl:ll,....       .........                    ",
-"          .      ..........cdxxdddddooc,':l:;;ldddooddoc:c:,.....  ............                     ",
-"          ;.   .','''.......:odddoooool:lxOkxooddooddddlcc;,,,,...............                      ",
-"          ;'..,;;,,,'. ......,loooooollodkOOkxddddolllcccc:;,................                       ",
-"          .. .;;;,,,,.  .......:oooooooodxkkkxxdoolc::;,,'..................                        ",
-"          .. .';;,,,,.. ........,loodddodxxxxxxdolc:;,,'...................                         ",
-"          ..  .;;,,,,'. ..........:odddddxxxxxxddlc:;;,'..................                          ",
-"          ..  .,;,,,,,.. ..........':llodxkkkkkxxdoolccc:;,''............                           ",
-"          .....,;;,,,,'.  ............;cldxkkkkkkkkxddoolcc::;;,,,....                              ",
-"             ..';;;,,'''.  .............,:ldxxkkkkkxdooccccc:;,,'....             .....             ",
-"              .',;;,,,'''.  ..............';clllooollc:;,,;;;,.....              .''''              ",
-"              .',;;,,,,,,.   .......       ..',,,;;;;;,'.........              ..'''                ",
-"               .',;;,,,,,,.    ....           ...............                ..'''                  ",
+    [
+"                                                                            ",
+"                                                                            ",
+"                                                                            ",
+"                                                                            ",
+"                                                                            ",
+"                                                                            ",
+"                                                                            ",
+"                   .',','',;;;;;''........ ...                              ",
+"                 ...':c:ccclodol::,'............                            ",
+"                ...'coodxooxxxdolc:;,,''''..'...............                ",
+"               ...,oxdxkxdxxxxddolc:::;;;,'',,'..............               ",
+"               .':dOOkkOkkkkkkkxdooooollc:::::;,,'...........               ",
+"              ..cdkOOOOOOOOOOOkkxxxxdoooooolcc::c:,,'........               ",
+"             ..;ldxkOOOOOOOOOOOkkkkxxddddoollolcc;,''........               ",
+"            ..;clodxkkkkkkkkkkkkkkxddddooollllc:;,...........               ",
+"            .coodddxkkkkkkxdddddxddoooooooollc:;,'............              ",
+"            ,oooddxxxxdol::;;;,,;;:cclclolcc:,,;,.           .              ",
+"            ,looddxdl:,'.......    .',;:;;;'....               ..           ",
+"            .lolodl,''..             ..;c;,....                             ",
+"            .:lloo;....               .oxoc,.                               ",
+"            .:oool;...               .,xOxo:..                              ",
+"           .,lddddc''.....          .,lOOxo:..                ...           ",
+"       ..  .,lxxxxdlclc;'.      ...'cdkOOkdc'...            ..'..           ",
+"       .....'lxxxxxxolodo:'....',::lk0OOOkdc'................'...           ",
+"        .....;ddxxxxkkxxo:;;;;;;::cdkOOOOkdc,..........'''.......           ",
+"        .... .:oxxkkkO0Okoc:;,''.;xOkkkOOOxl;..... ..,,,'''......           ",
+"        ......;oxxkxkkkkkxo:,....ckxxxxkkkdc,.....  ..,;,''......           ",
+"     . ...''..;oxxkkxxxdol:'...,cddc,,,;cc;'..... .. ..','.......           ",
+"       ..,;:;,;oxxxxddolc,''',:dkkxo;,'.....       .. ...........           ",
+"       .':oddl:oxkxxdolc::cc::coddddolc;....           ..........           ",
+"         .,;;,,lxkkxdooclol:,,:lloolc::;,',,'........   .........           ",
+"             ..cxkkxxddooo:'...'........''....          .........           ",
+"             ..,okxxdddddo:.    .;lccoloxo:cc,....      ........            ",
+"       .........;dxxddddooc,,ll:;cdddddddlcc:,....  ...........             ",
+"     .','''......;oddooooolcokOkdooddooddolc:;,,'.............              ",
+"     ;;,,,'. .....'coooooolodkkkkxddddocc:::;,'..............               ",
+"     ;;,,,'. .......,looodoodxxxxxdollc:;,'.................                ",
+"     ,;,,,,.  ........:odddddxxxxxdolc:;,'.................                 ",
+"     ';;,,,'. .........,coodxxkxxxxdoolc:;;,''............                  ",
+"     ';;,,,,.. ..........':loxkkkkkkkkxdoolc::;;,''....                     ",
+"     ',;;,,''.  ............,cdxxkkkkkkxdlcccc:;,,'...            ....      ",
+"     .,;;,,,''.  .............,:llloooolc:,,;;;'....             .'''..     ",
+"     .,;;;,,,,'.  .......     ...'',;;;;,'........             .'''...      ",
+"     .',;;;,,,,'.   ....          .........                  ..'''...       ",
+"     ''',;;,,,,,'.   ..                                    ..''....         ",
+"     ,''',,,,,,,,'.   ..                                 ...'....           ",
+"     .''''',,,,,,,,.                                 ...''.....             ",
+"      .''''''',,''','.                              .''......               ",
     ],
     [
       "BARTŁOMIEJ JODŁOWSKI",
@@ -818,10 +822,15 @@ const setupRain = () => {
     ctx.save();
     ctx.globalAlpha = opacity;
     ctx.fillStyle = '#00ff00';
-    ctx.font = `${fontSize}px monospace`;
+    
     const currentMessage = messages[currentMessageIndex];
     const yOffset = (canvas.height / 2) - fontSize * (currentMessage.length / 2);
     for (let i = 0; i < currentMessage.length; i++) {
+      if (currentMessage === messages[1]) {
+        ctx.font = `20px monospace`;
+      } else {
+        ctx.font = `14px monospace`;
+      }
       const textWidth = ctx.measureText(currentMessage[i]).width;
       const xOffset = (canvas.width - textWidth) / 2;
       ctx.fillText(currentMessage[i], xOffset, yOffset + i * fontSize);
@@ -831,18 +840,6 @@ const setupRain = () => {
 
   let asciiArtDisplayTime = 0;
   const maxAsciiArtDisplayTime = 40;
-
-  function drawAsciiArt() {
-    ctx.fillStyle = '#00ff00';
-    ctx.font = `${fontSize}px monospace`;
-    const yOffset = (canvas.height / 2) - fontSize * (asciiArt.length / 2);
-    for (let i = 0; i < asciiArt.length; i++) {
-      const textWidth = ctx.measureText(asciiArt[i]).width;
-      const xOffset = (canvas.width - textWidth) / 2;
-      ctx.fillText(asciiArt[i], xOffset, yOffset + i * fontSize);
-    }
-  }
-
 
   let transitionProgress = 0;
   const transitionDuration = 16000; 
@@ -857,7 +854,8 @@ const setupRain = () => {
 
   function drawAsciiArt() {
     ctx.fillStyle = '#00ff00';
-    ctx.font = `${fontSize}px monospace`;
+    ctx.font = `16px monospace`;
+    ctx.font.spacing = '8px'
     const yOffset = (canvas.height / 2) - fontSize * (asciiArt.length / 2);
     for (let i = 0; i < asciiArt.length; i++) {
       const textWidth = ctx.measureText(asciiArt[i]).width;
@@ -874,7 +872,7 @@ const setupRain = () => {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.font = `${fontSize}px monospace`;
+    ctx.font = `14px monospace`;
     for (let i = 0; i < drops.length; i++) {
       const char = getRandomChar();
 
