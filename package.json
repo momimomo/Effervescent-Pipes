@@ -4,14 +4,14 @@
     "version": "1.0.0",
     "private": true,
     "browserslist": "> 0.5%, last 2 versions, not dead",
-    "homepage": "https://momimomo.github.io/Effervescent-Pipes/",
+    "homepage": "https://www.e-vr.io/",
     "license": "MIT",
     "dependencies": {
         "gh-pages": "^5.0.0",
         "three": "^0.150.1"
     },
     "scripts": {
-        "build": "parcel build src/index.html --public-url https://momimomo.github.io/Effervescent-Pipes/",
+        "build": "parcel build src/index.html --public-url https://www.e-vr.io/",
         "dev": "parcel src/index.html",
         "deploy": "npx gh-pages --dist dist"
     },

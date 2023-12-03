@@ -7,15 +7,16 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 let scene = new THREE.Scene();
+let sceneTwo = new THREE.Scene();
+
 let clock = new THREE.Clock();
 
 let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+let cameraTwo = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 let renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas});
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
-
-renderer.outputEncoding = THREE.SRGBColorSpace;
 
 const composer = new EffectComposer(renderer);
 const renderPass = new RenderPass(scene, camera);
@@ -47,10 +48,55 @@ let ambientLight = new THREE.AmbientLight(0xaa77ee, 0.5);
 scene.add(ambientLight);
 
 
+const eyeShape = new THREE.Shape();
+const ellipseCurve = new THREE.EllipseCurve(
+  0, 0,            // ax, aY
+  2, 2,            // xRadius, yRadius
+  0, 6 * Math.PI,  // aStartAngle, aEndAngle
+  false,           // aClockwise
+  0                // aRotation
+);
+
+const points = ellipseCurve.getPoints(50);  
+eyeShape.splineThru(points);
+const irisShape = new THREE.Shape();
+const irisCurve = new THREE.EllipseCurve(0, 0, 1, 1, 0, 2 * Math.PI, false, 0);
+irisShape.splineThru(irisCurve.getPoints(50));
+
+const pupilShape = new THREE.Shape();
+const pupilCurve = new THREE.EllipseCurve(0, 0, 0.3, 0.3, 0, 2 * Math.PI, false, 0);
+pupilShape.splineThru(pupilCurve.getPoints(50));
+const eyeExtrudeSettings = { depth: 0.1, bevelEnabled: false };
+
+const eyeGeometry = new THREE.ExtrudeGeometry(eyeShape, eyeExtrudeSettings);
+const irisGeometry = new THREE.ExtrudeGeometry(irisShape, eyeExtrudeSettings);
+const pupilGeometry = new THREE.ExtrudeGeometry(pupilShape, eyeExtrudeSettings);
+
+let eyeMaterial = new THREE.MeshBasicMaterial({
+  color: 0xeeeeee,
+});
+let irisMaterial = new THREE.MeshBasicMaterial({
+  color: 0x994D00,
+});
+let pupilMaterial = new THREE.MeshBasicMaterial({
+  color: 0x111111,
+});
+const eyeMesh = new THREE.Mesh(eyeGeometry, eyeMaterial);
+const irisMesh = new THREE.Mesh(irisGeometry, irisMaterial);
+const pupilMesh = new THREE.Mesh(pupilGeometry, pupilMaterial);
+irisMesh.position.set(0, 0, 0.1);
+pupilMesh.position.set(0, 0, 0.2);
+
+eyeMesh.add(irisMesh);
+eyeMesh.add(pupilMesh);
+eyeMesh.scale.set(30,30,30)
+sceneTwo.add(eyeMesh);
+
+
 
 
 // Bees
-let geometry = new THREE.DodecahedronGeometry(0.3); // Smaller bees
+let geometry = new THREE.DodecahedronGeometry(0.2); // Smaller bees
 let mat = new THREE.MeshBasicMaterial({
   color: 0xffff00,
   transparent: true, // Enable transparency
@@ -70,7 +116,6 @@ let randomFormulaTwo = () => Math.random() * Math.PI * 2;
 
 // controls
 const controls = new OrbitControls(camera, renderer.domElement);
-const speed = 70000
 controls.autoRotate = true;
 
 
@@ -81,7 +126,7 @@ let mainAnimStop = false;
 
 // Explosion
 const particleCount = 10000;
-const boxGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
 const explosionMaterial = new THREE.MeshBasicMaterial({
   color: 0x33bbff,
   transparent: true, // Enable transparency
@@ -151,6 +196,54 @@ const tvGroup = new THREE.Group();
 
 // Materials
 const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x88aa44 });
+
+// Create standard materials for the non-portal faces
+const standardMaterial = new THREE.MeshPhongMaterial({ color: 0x88aa44 });
+
+// Render target
+const renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+
+// Create portal material with the render target texture
+const portalMaterial = new THREE.MeshBasicMaterial({ map: renderTarget.texture });
+const portalGeom = new THREE.PlaneGeometry(17.95, 17.95, 1)
+const portalObj = new THREE.Mesh(portalGeom, portalMaterial)
+
+portalObj.position.set(13, 16, -3)
+
+
+
+// black triangles to frame the portal into a triangle
+const triangleMaterial = new THREE.MeshBasicMaterial({color: 0x000000})
+const triangleVertices = [
+  new THREE.Vector3(0, 0, 0),
+  new THREE.Vector3(9, 0, 0),
+  new THREE.Vector3(0, 18, 0)
+];
+
+// Create a geometry with the vertices
+const triangleGeometry = new THREE.BufferGeometry().setFromPoints(triangleVertices);
+const triangle = new THREE.Mesh(triangleGeometry, triangleMaterial);
+
+triangle.rotation.z = Math.PI 
+triangle.position.set(22, 25, -2.99)
+
+const triangleTwoVertices = [
+  new THREE.Vector3(0, 0, 0),
+  new THREE.Vector3(9, 0, 0),
+  new THREE.Vector3(9, 18, 0)
+];
+
+// Create a geometry with the vertices
+const triangleTwoGeometry = new THREE.BufferGeometry().setFromPoints(triangleTwoVertices);
+const triangleTwo = new THREE.Mesh(triangleTwoGeometry, triangleMaterial);
+
+triangleTwo.rotation.z = Math.PI 
+triangleTwo.position.set(13, 25, -2.99)
+
+scene.add(portalObj)
+scene.add(triangle)
+scene.add(triangleTwo)
+
 const screenMaterial = new THREE.MeshPhongMaterial({ color: 0x444411, shininess: 100, specular: 0x222222 });
 const crtScreenMaterial = new THREE.MeshPhongMaterial({ color: 0x226622, shininess: 100, specular: 0x888888 });
 const buttonMaterial = new THREE.MeshPhongMaterial({ color: 0x77aadd });
@@ -160,7 +253,7 @@ const waveMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2
 
 // TV body
 const bodyGeometry = new THREE.BoxGeometry(5, 3, 1);
-const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+const body = new THREE.Mesh(bodyGeometry, standardMaterial);
 tvGroup.add(body);
 
 // Beveled screen
@@ -454,7 +547,6 @@ crosshair.position.z = -5; // Adjust if needed to move the crosshair in front of
 scene.add(crosshair);
 
 
-// Your existing animation and rendering code...
 
 
 // Constants that define the nature of the trajectory
@@ -643,7 +735,6 @@ let step = 0;
 tvGroup.opacity = 0
 hexFaceMaterial.opacity = 0;
 hexSideMaterial.opacity = 0;
-console.log(tvGroup)
 tvGroup.scale.set(0, 0, 0)
 crosshair.scale.set(0, 0, 0)
 
@@ -995,7 +1086,6 @@ function checkIntersection(coords) {
 
   // Calculate objects intersecting the picking ray
   const intersects = raycaster.intersectObject(tvGroup);
-  console.log(raycaster)
 
   if (intersects.length > 0) {
     // Assuming 'box' is your mesh and it's the first intersected object
@@ -1009,15 +1099,22 @@ function yourFunction(intersection) {
   mainAnimStop = true;
   renderer.clear()
   setupRain();
-  console.log('Box was clicked', intersection);
 }
 
 // Bind the event listeners for mouse and touch events
 renderer.domElement.addEventListener('click', onClick, false);
 renderer.domElement.addEventListener('touchstart', onTouch, false);
 
+function handleResize() {
+  camera.aspect = window.innerWidth / window.innerHeight
+  camera.updateProjectionMatrix()
+  cameraTwo.aspect = window.innerWidth / window.innerHeight
+  cameraTwo.updateProjectionMatrix()
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  composer.setSize(window.innerWidth, window.innerHeight)
+}
 
-
+window.addEventListener("resize", handleResize);
 
 // Render Loop Start
 function animate() {
@@ -1035,6 +1132,9 @@ function animate() {
     explosionMaterial.opacity = 0
     scene.remove(exDummy.name)
     step = 1;
+    // scene.add(portalObj)
+    // scene.add(triangle)
+    // scene.add(triangleTwo)
   }
 
   
@@ -1061,6 +1161,7 @@ function animate() {
       hexFaceMaterial.opacity = opacityProgress * targetOpacity;
       hexSideMaterial.opacity = opacityProgress * targetOpacity;
       mat.opacity = opacityProgress * targetOpacity;
+      // opacityControl
     } else {
       hexFaceMaterial.opacity = targetOpacity;
       hexSideMaterial.opacity = targetOpacity;
@@ -1079,7 +1180,12 @@ function animate() {
     }
   instancedMesh.instanceMatrix.needsUpdate = true;
 
-  controls.autoRotateSpeed = 1200 * clock.getDelta();
+  cameraTwo.rotation.copy(camera.rotation);
+  cameraTwo.position.copy(camera.position);
+
+  renderer.setRenderTarget(renderTarget);
+  renderer.render(sceneTwo, cameraTwo)
+  renderer.setRenderTarget(null);
   composer.render();
   controls.update();
 }
