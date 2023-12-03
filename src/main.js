@@ -240,9 +240,6 @@ const triangleTwo = new THREE.Mesh(triangleTwoGeometry, triangleMaterial);
 triangleTwo.rotation.z = Math.PI 
 triangleTwo.position.set(13, 25, -2.99)
 
-scene.add(portalObj)
-scene.add(triangle)
-scene.add(triangleTwo)
 
 const screenMaterial = new THREE.MeshPhongMaterial({ color: 0x444411, shininess: 100, specular: 0x222222 });
 const crtScreenMaterial = new THREE.MeshPhongMaterial({ color: 0x226622, shininess: 100, specular: 0x888888 });
@@ -251,9 +248,41 @@ const antennaMaterial = new THREE.MeshPhongMaterial({ color: 0x999999 });
 const antennaTopMaterial = new THREE.MeshPhongMaterial({ color: 0xcccccc });
 const waveMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
 
+// canvas for the 'click me' text
+const textCanvas = document.createElement('canvas');
+
+const textCtx = textCanvas.getContext('2d');
+textCanvas.width = 512;
+textCanvas.height = 256;
+
+textCtx.fillStyle = '#2d2820'; // Replace 'black' with your desired color
+textCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+// Set text properties
+textCtx.font = '72px Courier New';
+textCtx.fillStyle = 'green';
+textCtx.textAlign = 'center';
+textCtx.textBaseline = 'middle';
+
+// Draw text on canvas
+textCtx.fillText('Click Me!', textCanvas.width / 2, textCanvas.height / 2);
+const textTexture = new THREE.CanvasTexture(textCanvas);
+textTexture.needsUpdate = true;
+// Create a material with the canvas texture
+const textMaterial = new THREE.MeshBasicMaterial({ map: textTexture });
+
+const materials = [
+  standardMaterial,
+  standardMaterial,
+  standardMaterial,
+  standardMaterial,
+  standardMaterial,
+  textMaterial
+]
+
 // TV body
 const bodyGeometry = new THREE.BoxGeometry(5, 3, 1);
-const body = new THREE.Mesh(bodyGeometry, standardMaterial);
+const body = new THREE.Mesh(bodyGeometry, materials);
 tvGroup.add(body);
 
 // Beveled screen
@@ -1132,9 +1161,9 @@ function animate() {
     explosionMaterial.opacity = 0
     scene.remove(exDummy.name)
     step = 1;
-    // scene.add(portalObj)
-    // scene.add(triangle)
-    // scene.add(triangleTwo)
+    scene.add(portalObj)
+    scene.add(triangle)
+    scene.add(triangleTwo)
   }
 
   
@@ -1192,6 +1221,7 @@ function animate() {
 
 instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 scene.add(instancedMesh);
-
-camera.position.z = 50;
+camera.position.x = 50;
+camera.position.z = 0;
+camera.lookAt(0,0,0)
 animate();
