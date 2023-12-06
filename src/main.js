@@ -13,7 +13,6 @@ let clock = new THREE.Clock();
 
 let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 let cameraTwo = new THREE.PerspectiveCamera(90, 1, 0.1, 1000);
-
 let renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas});
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -208,7 +207,7 @@ const portalMaterial = new THREE.MeshBasicMaterial({ map: renderTarget.texture }
 const portalGeom = new THREE.PlaneGeometry(17.55, 17.55, 1)
 const portalObj = new THREE.Mesh(portalGeom, portalMaterial)
 
-portalObj.position.set(13, 16, -3.1)
+portalObj.position.set(13, 16, -3.01)
 
 
 
@@ -225,7 +224,7 @@ const triangleGeometry = new THREE.BufferGeometry().setFromPoints(triangleVertic
 const triangle = new THREE.Mesh(triangleGeometry, triangleMaterial);
 
 triangle.rotation.z = Math.PI 
-triangle.position.set(22, 25, -2.95)
+triangle.position.set(22, 25, -2.99)
 
 const triangleTwoVertices = [
   new THREE.Vector3(0, 0, 0),
@@ -238,8 +237,7 @@ const triangleTwoGeometry = new THREE.BufferGeometry().setFromPoints(triangleTwo
 const triangleTwo = new THREE.Mesh(triangleTwoGeometry, triangleMaterial);
 
 triangleTwo.rotation.z = Math.PI 
-triangleTwo.position.set(13, 25, -2.95)
-
+triangleTwo.position.set(13, 25, -2.99)
 
 const screenMaterial = new THREE.MeshPhongMaterial({ color: 0x444411, shininess: 100, specular: 0x222222 });
 const crtScreenMaterial = new THREE.MeshPhongMaterial({ color: 0x226622, shininess: 100, specular: 0x888888 });
