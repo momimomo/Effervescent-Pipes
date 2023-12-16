@@ -135,8 +135,8 @@ const particles = new THREE.InstancedMesh(boxGeometry, explosionMaterial, partic
 scene.add(particles);
 
 let maxDiameter = 200; // maximum radius of explosion
-let timeToMax = 1; // time in seconds to reach maxDiameter
-let cooldownTime = 3; // time in seconds to cool down to the average level
+let timeToMax = 0.5; // time in seconds to reach maxDiameter
+let cooldownTime = 2; // time in seconds to cool down to the average level
 
 const exDummy = new THREE.Object3D();
 
@@ -947,7 +947,7 @@ const setupRain = () => {
       if (currentMessage === messages[1]) {
         ctx.font = `20px monospace`;
       } else {
-        ctx.font = `14px monospace`;
+        ctx.font = `12px monospace`;
       }
       const textWidth = ctx.measureText(currentMessage[i]).width;
       const xOffset = (canvas.width - textWidth) / 2;
@@ -957,10 +957,10 @@ const setupRain = () => {
   }
 
   let asciiArtDisplayTime = 0;
-  const maxAsciiArtDisplayTime = 40;
+  const maxAsciiArtDisplayTime = 30;
 
   let transitionProgress = 0;
-  const transitionDuration = 16000; 
+  const transitionDuration = 12000; 
 
   function updateProgress() {
     transitionProgress += 50;
@@ -972,7 +972,7 @@ const setupRain = () => {
 
   function drawAsciiArt() {
     ctx.fillStyle = '#00ff00';
-    ctx.font = `16px monospace`;
+    ctx.font = `14px monospace`;
     const yOffset = (canvas.height / 2) - fontSize * (asciiArt.length / 2);
     for (let i = 0; i < asciiArt.length; i++) {
       const textWidth = ctx.measureText(asciiArt[i]).width;
