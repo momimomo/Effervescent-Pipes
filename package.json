@@ -7,8 +7,7 @@
     "homepage": "https://www.e-vr.io/",
     "license": "MIT",
     "dependencies": {
-        "gh-pages": "^5.0.0",
-        "three": "^0.150.1"
+        "gh-pages": "^5.0.0"
     },
     "scripts": {
         "build": "parcel build src/index.html --public-url https://www.e-vr.io/",
