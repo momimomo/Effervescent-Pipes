@@ -1,3 +1,47 @@
+const svgDef = `
+<?xml version="1.0"?>
+<svg id="firstsvg" width="800" height="800" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" version="1.0">
+
+<g class="layer" id="tesseract">
+<title>Layer 1</title>
+<g id="svg_1" stroke="#000000" stroke-opacity="1" stroke-width="3">
+<line id="svg_2" x1="779.58" x2="668.4" y1="400" y2="668.4"/>
+<line id="svg_3" x1="511.18" x2="400" y1="511.18" y2="779.58"/>
+<line id="svg_4" x1="779.58" x2="511.18" y1="400" y2="511.18"/>
+<line id="svg_5" x1="668.4" x2="400" y1="668.4" y2="779.58"/>
+<line id="svg_6" x1="511.18" x2="400" y1="288.82" y2="557.23"/>
+<line id="svg_7" x1="242.77" x2="131.59" y1="400" y2="668.4"/>
+<line id="svg_8" x1="511.18" x2="242.77" y1="288.82" y2="400"/>
+<line id="svg_9" x1="400" x2="131.59" y1="557.23" y2="668.4"/>
+<line id="svg_10" x1="779.58" x2="511.18" y1="400" y2="288.82"/>
+<line id="svg_11" x1="668.4" x2="400" y1="668.4" y2="557.23"/>
+<line id="svg_12" x1="511.18" x2="242.77" y1="511.18" y2="400"/>
+<line id="svg_13" x1="400" x2="131.59" y1="779.58" y2="668.4"/>
+<line id="svg_14" x1="668.4" x2="557.23" y1="131.59" y2="400"/>
+<line id="svg_15" x1="400" x2="288.82" y1="242.77" y2="511.18"/>
+<line id="svg_16" x1="668.4" x2="400" y1="131.59" y2="242.77"/>
+<line id="svg_17" x1="557.23" x2="288.82" y1="400" y2="511.18"/>
+<line id="svg_18" x1="400" x2="288.82" y1="20.42" y2="288.82"/>
+<line id="svg_19" x1="131.59" x2="20.42" y1="131.59" y2="400"/>
+<line id="svg_20" x1="400" x2="131.59" y1="20.42" y2="131.59"/>
+<line id="svg_21" x1="288.82" x2="20.42" y1="288.82" y2="400"/>
+<line id="svg_22" x1="668.4" x2="400" y1="131.59" y2="20.42"/>
+<line id="svg_23" x1="557.23" x2="288.82" y1="400" y2="288.82"/>
+<line id="svg_24" x1="400" x2="131.59" y1="242.77" y2="131.59"/>
+<line id="svg_25" x1="288.82" x2="20.42" y1="511.18" y2="400"/>
+<line id="svg_26" x1="779.58" x2="668.4" y1="400" y2="131.59"/>
+<line id="svg_27" x1="668.4" x2="557.23" y1="668.4" y2="400"/>
+<line id="svg_28" x1="511.18" x2="400" y1="511.18" y2="242.77"/>
+<line id="svg_29" x1="400" x2="288.82" y1="779.58" y2="511.18"/>
+<line id="svg_30" x1="511.18" x2="400" y1="288.82" y2="20.42"/>
+<line id="svg_31" x1="400" x2="288.82" y1="557.23" y2="288.82"/>
+<line id="svg_32" x1="242.77" x2="131.59" y1="400" y2="131.59"/>
+<line id="svg_33" x1="131.59" x2="20.42" y1="668.4" y2="400"/>
+</g>
+<g fill="#ff0000" id="svg_34" stroke="#000000" stroke-width="3"/>
+</g>
+</svg>`;
+
 function createFace(pointsArray, color, delay) {
   const ns = "http://www.w3.org/2000/svg";
   const polygon = document.createElementNS(ns, 'polygon');
@@ -102,7 +146,7 @@ const faces = [
 
 const uniquePoints = new Set();
 const svgContainer = document.querySelector('#svgContainer');
-// svgContainer.innerHTML = svgDef;
+svgContainer.innerHTML = svgDef;
 const lines = document.querySelectorAll('line');
 const angleGroups = {};
 let lineDelay = 1;
@@ -151,11 +195,11 @@ function updateViewportSize() {
   let translateX = '';
   let translateY = '';
   if (viewportWidth < 420) {
-    translateX = `${-viewportWidth * 3}px`
-    translateY = `${-viewportHeight * 3}px`
+    translateX = `${-viewportWidth * 3.5 + 8}px`
+    translateY = `${-viewportHeight * 2.8}px`
   } else if (viewportWidth < 820) {
     translateX = `${-viewportWidth * 5 / 3}px`
-    translateY = `${-viewportHeight * 4 / 3}px`
+    translateY = `${-viewportHeight * 2}px`
   } else {
     translateX = `${-viewportWidth}px`
     translateY = `${-viewportHeight * 2 / 3}px`
@@ -236,7 +280,12 @@ window.setTimeout(() => {
   const services = document.querySelector('#services');
   const textfirstline = headline.querySelector('#textfirstline');
   const textsecondline = headline.querySelector('#textsecondline');
-  if (viewportWidth < 450) {
+
+
+  if (viewportWidth < 300) {
+    textfirstline.style.top = `${y - 95}px`;
+    textsecondline.style.top = `${y - 2}px`;
+  } else if (viewportWidth < 450) {
     textfirstline.style.top = `${y - 65}px`;
     textsecondline.style.top = `${y - 2}px`;
   } else if (viewportWidth < 520) {
@@ -249,14 +298,9 @@ window.setTimeout(() => {
     textfirstline.style.top = `${y - 90}px`;
     textsecondline.style.top = `${y - 8}px`;
   } else if (viewportWidth < 860) {
-    if (viewportHeight < 420) {
-      textfirstline.style.top = `${y - 75}px`;
-      textsecondline.style.top = `${y - 10}px`;
-    } else {
-      textfirstline.style.top = `${y - 95}px`;
-      textsecondline.style.top = `${y - 10}px`;
-    }
-  } else if (viewportWidth < 980) {
+    textfirstline.style.top = `${y - 95}px`;
+    textsecondline.style.top = `${y - 10}px`;
+    }else if (viewportWidth < 980) {
     textfirstline.style.top = `${y - 100}px`;
     textsecondline.style.top = `${y - 10}px`;
   } else if (viewportWidth < 1160) {
@@ -266,9 +310,17 @@ window.setTimeout(() => {
     textfirstline.style.top = `${y - 160}px`;
     textsecondline.style.top = `${y - 30}px`;
   }
+
   
   
-  if (viewportHeight < 450) {
+  
+  if (viewportHeight < 360) {
+    textfirstline.style.top = `${y - 50}px`;
+    textsecondline.style.top = `${y - 2}px`;
+    services.style.top = `${y + 30}px`;
+  } else if (viewportHeight < 450) {
+    textfirstline.style.top = `${y - 70}px`;
+    textsecondline.style.top = `${y - 8}px`;
     services.style.top = `${y + 70}px`;
   } else {
     services.style.top = `${y + 120}px`;
