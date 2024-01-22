@@ -246,10 +246,8 @@ function renderServices() {
 function getTransformedCoordinates() {
   const tesseract = document.querySelector('#tesseract');
   const tesseractRect = tesseract.getBoundingClientRect();
-  console.log({ tesseractRect })
   const transformedX = tesseractRect.right - 0.5;
   const transformedY = tesseractRect.top + tesseractRect.height / 2;
-  console.log({ x: transformedX, y: transformedY })
   return { x: transformedX, y: transformedY };
 }
 
