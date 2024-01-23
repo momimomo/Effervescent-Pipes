@@ -7,7 +7,8 @@
     "homepage": "https://www.e-vr.io/",
     "license": "MIT",
     "dependencies": {
-        "gh-pages": "^5.0.0"
+        "gh-pages": "^5.0.0",
+        "parcel": "^2.11.0"
     },
     "scripts": {
         "build": "parcel build src/index.html --public-url https://www.e-vr.io/ --no-cache --no-source-maps",
@@ -17,5 +18,8 @@
     "devDependencies": {
         "@parcel/compressor-gzip": "^2.10.2",
         "@parcel/config-default": "^2.10.2"
+    },
+    "optionalDependencies": {
+        "@parcel/watcher-linux-x64-glibc": "^2.4.0"
     }
 }

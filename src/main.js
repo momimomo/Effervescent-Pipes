@@ -145,8 +145,10 @@ const faces = [
 ];
 
 const uniquePoints = new Set();
-const svgContainer = document.querySelector('#svgContainer');
+const svgContainer = document.querySelector('#svg-container');
 svgContainer.innerHTML = svgDef;
+
+
 const lines = document.querySelectorAll('line');
 const angleGroups = {};
 let lineDelay = 1;
@@ -187,31 +189,7 @@ uniquePoints.forEach(point => {
 });
 
 
-const svgElement = document.querySelector('svg');
-
-function updateViewportSize() {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  let translateX = '';
-  let translateY = '';
-  if (viewportWidth < 420) {
-    translateX = `${-viewportWidth * 3.5 + 8}px`
-    translateY = `${-viewportHeight * 2.8}px`
-  } else if (viewportWidth < 820) {
-    translateX = `${-viewportWidth * 5 / 3}px`
-    translateY = `${-viewportHeight * 2}px`
-  } else {
-    translateX = `${-viewportWidth}px`
-    translateY = `${-viewportHeight * 2 / 3}px`
-  }
-
-  svgElement.style.setProperty('--translate-x', translateX);
-  svgElement.style.setProperty('--translate-y', translateY);
-}
-
-updateViewportSize();
-
-window.addEventListener('resize', updateViewportSize);
+const svgElement = document.querySelector('#firstsvg');
 
 faces.forEach((faceData, index) => {
   const face = createFace(faceData.points, faceData.color, faceDelay);
@@ -230,6 +208,16 @@ Object.keys(angleGroups).forEach(angle => {
   lineDelay += lineDelayIncrement;
 });
 
+
+
+function getTransformedCoordinates() {
+  const tesseract = document.querySelector('#tesseract');
+  const tesseractRect = tesseract.getBoundingClientRect();
+  const transformedX = tesseractRect.right - 0.5;
+  const transformedY = tesseractRect.top + tesseractRect.height / 2;
+  return { x: transformedX, y: transformedY };
+}
+
 function renderServices() {
   const services = document.querySelector('#services');
   const allLines = services.querySelectorAll('h4,h5');
@@ -240,16 +228,6 @@ function renderServices() {
   })
 }
 
-
-
-
-function getTransformedCoordinates() {
-  const tesseract = document.querySelector('#tesseract');
-  const tesseractRect = tesseract.getBoundingClientRect();
-  const transformedX = tesseractRect.right - 0.5;
-  const transformedY = tesseractRect.top + tesseractRect.height / 2;
-  return { x: transformedX, y: transformedY };
-}
 
 
 window.setTimeout(() => {
@@ -265,70 +243,28 @@ window.setTimeout(() => {
   <g class="layertwo">
     <title>Layer 2</title>
       <g id="svg_linetwo_1" stroke="#000000" stroke-opacity="1" stroke-width="1">
-        <line id="secondline" x1="${x}" x2="${x2}" y1="${y}" y2="${y}"/>
+        <line id="line-svg" x1="${x}" x2="${x2}" y1="${y}" y2="${y}"/>
       </g>
     </g>
   </svg>`;
-  const svgContainerTwo = document.querySelector('#svgContainerTwo');
+  const svgContainerTwo = document.querySelector('#line-wrapper');
   svgContainerTwo.innerHTML = svgLineDef;
-  const secondline = svgContainerTwo.querySelector('#secondline');
+  const secondline = svgContainerTwo.querySelector('#line-svg');
   const length = secondline.getTotalLength();
   secondline.style.setProperty('--line-length', length);
+  
   const headline = document.querySelector('#headline');
   const services = document.querySelector('#services');
-  const textfirstline = headline.querySelector('#textfirstline');
-  const textsecondline = headline.querySelector('#textsecondline');
+  const textfirstline = headline.querySelector('#line-1');
+  const textsecondline = headline.querySelector('#line-2');
 
 
-  if (viewportWidth < 300) {
-    textfirstline.style.top = `${y - 95}px`;
-    textsecondline.style.top = `${y - 2}px`;
-  } else if (viewportWidth < 450) {
-    textfirstline.style.top = `${y - 65}px`;
-    textsecondline.style.top = `${y - 2}px`;
-  } else if (viewportWidth < 520) {
-    textfirstline.style.top = `${y - 75}px`;
-    textsecondline.style.top = `${y - 4}px`;
-  } else if (viewportWidth < 630) {
-    textfirstline.style.top = `${y - 85}px`;
-    textsecondline.style.top = `${y - 6}px`;
-  } else if (viewportWidth < 740) {
-    textfirstline.style.top = `${y - 90}px`;
-    textsecondline.style.top = `${y - 8}px`;
-  } else if (viewportWidth < 860) {
-    textfirstline.style.top = `${y - 95}px`;
-    textsecondline.style.top = `${y - 10}px`;
-    }else if (viewportWidth < 980) {
-    textfirstline.style.top = `${y - 100}px`;
-    textsecondline.style.top = `${y - 10}px`;
-  } else if (viewportWidth < 1160) {
-    textfirstline.style.top = `${y - 130}px`;
-    textsecondline.style.top = `${y - 20}px`;
-  } else {
-    textfirstline.style.top = `${y - 160}px`;
-    textsecondline.style.top = `${y - 30}px`;
-  }
-
-  
-  
-  
-  if (viewportHeight < 360) {
-    textfirstline.style.top = `${y - 50}px`;
+    textfirstline.style.top = `${y - 60}px`;
     textsecondline.style.top = `${y - 2}px`;
     services.style.top = `${y + 30}px`;
-  } else if (viewportHeight < 450) {
-    textfirstline.style.top = `${y - 70}px`;
-    textsecondline.style.top = `${y - 8}px`;
-    services.style.top = `${y + 70}px`;
-  } else {
-    services.style.top = `${y + 120}px`;
-  }
-  if (viewportWidth > 450) {
-    services.style.left = `${x / 2}px`;
-  } else {
     services.style.left = `6px`;
-  }
   renderServices()
   textfirstline.style.left = `${x}px`;
   textsecondline.style.left = `${x}px`;
 }, 10000); 
+
